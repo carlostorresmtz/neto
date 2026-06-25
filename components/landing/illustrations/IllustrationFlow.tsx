@@ -11,17 +11,17 @@ export default function IllustrationFlow() {
       <rect className="draw-line" pathLength={1} x="28" y="40" width="64" height="44" rx="5" {...s} style={{ transitionDelay: "0s" }} />
       <polyline className="draw-line" pathLength={1} points="28,46 60,66 92,46" {...s} style={{ transitionDelay: "0.25s" }} />
 
-      {/* connector → hub */}
-      <line className="draw-line" pathLength={1} x1="98" y1="62" x2="158" y2="62" stroke={STROKE} strokeWidth="1.5" strokeDasharray="0.06 0.06" style={{ transitionDelay: "0.5s", opacity: 0.5 }} />
+      {/* connector → hub (gap 26px a cada lado, centrado, largo 40) */}
+      <line className="draw-line" pathLength={1} x1="118" y1="62" x2="158" y2="62" stroke={STROKE} strokeWidth="1.5" strokeDasharray="0.06 0.06" style={{ transitionDelay: "0.5s", opacity: 0.5 }} />
       <polyline className="draw-line" pathLength={1} points="152,57 158,62 152,67" {...s} style={{ transitionDelay: "0.6s" }} />
 
       {/* ── hub Neto ── */}
       <circle className="draw-line" pathLength={1} cx="210" cy="62" r="26" stroke={ACCENT} strokeWidth="1.5" fill="none" style={{ transitionDelay: "0.7s" }} />
       <polyline className="draw-line" pathLength={1} points="199,63 206,70 221,53" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" style={{ transitionDelay: "0.95s" }} />
 
-      {/* connector → output */}
-      <line className="draw-line" pathLength={1} x1="238" y1="62" x2="298" y2="62" stroke={STROKE} strokeWidth="1.5" strokeDasharray="0.06 0.06" style={{ transitionDelay: "1.05s", opacity: 0.5 }} />
-      <polyline className="draw-line" pathLength={1} points="292,57 298,62 292,67" {...s} style={{ transitionDelay: "1.15s" }} />
+      {/* connector → output (gap 14px a cada lado, centrado, largo 40) */}
+      <line className="draw-line" pathLength={1} x1="250" y1="62" x2="290" y2="62" stroke={STROKE} strokeWidth="1.5" strokeDasharray="0.06 0.06" style={{ transitionDelay: "1.05s", opacity: 0.5 }} />
+      <polyline className="draw-line" pathLength={1} points="284,57 290,62 284,67" {...s} style={{ transitionDelay: "1.15s" }} />
 
       {/* ── organized output (lista categorizada) ── */}
       <rect className="draw-line" pathLength={1} x="304" y="34" width="88" height="56" rx="6" {...s} style={{ transitionDelay: "1.25s" }} />
