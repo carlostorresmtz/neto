@@ -31,9 +31,6 @@ export default function IllustrationPainPoint3() {
           style={{ transitionDelay: `${0.15 + i * 0.12}s`, opacity: b.accent ? 1 : 0.75 }}
         />
       ))}
-      {/* alert node above the spike */}
-      <circle className="draw-fade" cx="86" cy={base - 56 - 7} r="3" fill={ACCENT} style={{ transitionDelay: "0.95s" }} />
-      <line className="draw-line" pathLength={1} x1="86" y1={base - 56 - 11} x2="86" y2={base - 56 - 13} stroke={ACCENT} strokeWidth="2" strokeLinecap="round" style={{ transitionDelay: "1.05s" }} />
     </LineArt>
   );
 }
