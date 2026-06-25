@@ -1056,10 +1056,25 @@ body {
   display: flex;
   width: max-content;
   align-items: center;
-  gap: 12px;
+  gap: 48px;
   animation: bankScroll 35s linear infinite;
 }
 .carousel-track:hover { animation-play-state: paused; }
+
+/* Minimalist text-only bank names (estilo Handle "confiado por") */
+.bank-name {
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #8a8a86;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.dark .bank-name { color: #8b95a7; }
+@media (max-width: 640px) {
+  .carousel-track { gap: 36px; }
+  .bank-name { font-size: 16px; }
+}
 
 /* ── LANDING ANIMATIONS ── */
 

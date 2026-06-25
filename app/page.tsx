@@ -19,77 +19,7 @@ import ScrollIndicator from "@/components/landing/ScrollIndicator";
 import TypingBadge from "@/components/landing/TypingBadge";
 import ScrollProgress from "@/components/landing/ScrollProgress";
 
-const BANKS = [
-  {
-    name: "BBVA",
-    logo: (
-      <div style={{ height: 48, background: "#004481", borderRadius: 8, padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <span style={{ color: "#fff", fontWeight: 900, fontSize: 15, letterSpacing: "0.03em" }}>BBVA</span>
-      </div>
-    ),
-  },
-  {
-    name: "Nu",
-    logo: (
-      <div style={{ height: 48, background: "#820ad1", borderRadius: 8, padding: "0 18px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <span style={{ color: "#fff", fontWeight: 700, fontSize: 17, letterSpacing: "-0.01em" }}>nu</span>
-      </div>
-    ),
-  },
-  {
-    name: "Amex",
-    logo: (
-      <div style={{ height: 48, background: "#016FD0", borderRadius: 8, padding: "0 14px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <span style={{ color: "#fff", fontWeight: 800, fontSize: 12, letterSpacing: "0.1em" }}>AMEX</span>
-      </div>
-    ),
-  },
-  {
-    name: "Banamex",
-    logo: (
-      <div style={{ height: 48, background: "#fff", borderRadius: 8, padding: "0 14px", display: "flex", alignItems: "center", gap: 6, flexShrink: 0, border: "1px solid #E2E8F0" }}>
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#CC0000", flexShrink: 0 }} />
-        <span style={{ color: "#CC0000", fontWeight: 800, fontSize: 13, letterSpacing: "0.01em" }}>Banamex</span>
-      </div>
-    ),
-  },
-  {
-    name: "HSBC",
-    logo: (
-      <div style={{ height: 48, background: "#DB0011", borderRadius: 8, padding: "0 16px", display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" fill="rgba(255,255,255,0.25)" stroke="#fff" strokeWidth="1.5"/>
-        </svg>
-        <span style={{ color: "#fff", fontWeight: 800, fontSize: 13, letterSpacing: "0.04em" }}>HSBC</span>
-      </div>
-    ),
-  },
-  {
-    name: "Santander",
-    logo: (
-      <div style={{ height: 48, background: "#EC0000", borderRadius: 8, padding: "0 14px", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-        <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.6)", flexShrink: 0 }} />
-        <span style={{ color: "#fff", fontWeight: 700, fontSize: 12 }}>Santander</span>
-      </div>
-    ),
-  },
-  {
-    name: "Scotiabank",
-    logo: (
-      <div style={{ height: 48, background: "#c41e3a", borderRadius: 8, padding: "0 14px", display: "flex", alignItems: "center", flexShrink: 0 }}>
-        <span style={{ color: "#ffd700", fontWeight: 800, fontSize: 12 }}>Scotiabank</span>
-      </div>
-    ),
-  },
-  {
-    name: "Inbursa",
-    logo: (
-      <div style={{ height: 48, background: "#003478", borderRadius: 8, padding: "0 14px", display: "flex", alignItems: "center", flexShrink: 0 }}>
-        <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Inbursa</span>
-      </div>
-    ),
-  },
-];
+const BANKS = ["BBVA", "Santander", "Nu", "Amex", "Banamex", "HSBC", "Scotiabank", "Inbursa"];
 
 const PAIN_POINTS = [
   {
@@ -286,9 +216,7 @@ export default function LandingPage() {
         <div className="carousel-outer">
           <div className="carousel-track">
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
-              <div key={i} style={{ flexShrink: 0, minWidth: 120, height: 48, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {bank.logo}
-              </div>
+              <span key={i} className="bank-name">{bank}</span>
             ))}
           </div>
         </div>
