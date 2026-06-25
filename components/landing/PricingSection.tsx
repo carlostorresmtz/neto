@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import ScrollReveal from "@/components/landing/ScrollReveal";
+import Reveal from "@/components/landing/Reveal";
 
 const PRICING = [
   {
@@ -102,7 +102,7 @@ export default function PricingSection() {
         {PRICING.map((plan, i) => {
           const price = annual ? plan.annualPrice : plan.monthlyPrice;
           return (
-            <ScrollReveal key={plan.name} delay={i * 100}>
+            <Reveal key={plan.name} delay={i * 100} style={{ height: "100%" }}>
               <div className="card-hover-line" style={{
                 background: plan.bg, border: plan.border,
                 borderRadius: 12, padding: "28px 24px",
@@ -155,7 +155,7 @@ export default function PricingSection() {
                   </button>
                 </Link>
               </div>
-            </ScrollReveal>
+            </Reveal>
           );
         })}
       </div>

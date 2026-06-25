@@ -460,7 +460,7 @@ export default function LandingPage() {
           {/* Social proof */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 28 }}>
             <div style={{ display: "flex" }}>
-              {(["#b8f566","#66c4f5","#f5c166","#f56666","#c466f5"] as const).map((c, i) => (
+              {(["#DBEAFE","#BFDBFE","#93C5FD","#BAE6FD","#CBD5E1"] as const).map((c, i) => (
                 <div key={i} style={{
                   width: 32, height: 32, borderRadius: "50%",
                   background: `linear-gradient(135deg, ${c}33, ${c}88)`,
