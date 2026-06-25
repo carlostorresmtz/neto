@@ -1,173 +1,142 @@
 # Neto
 
-**Tu asistente financiero personal con IA, para México.**
+**Asistente de finanzas personales con IA para México.**
 
-Neto lee tus correos bancarios (Gmail) y responde en español cualquier pregunta sobre tu dinero: gastos por categoría, suscripciones, deuda de tarjetas, deducibles de ISR y más. Sin hojas de cálculo, sin apps extra. Acceso de **solo lectura** — Neto nunca escribe, borra ni mueve dinero.
+Neto lee tus correos bancarios en Gmail (modo solo lectura) y responde en lenguaje natural cualquier pregunta sobre tu dinero. Sin hojas de cálculo, sin apps extra, sin compartir contraseñas. Cero cambio de comportamiento del usuario.
 
-🌐 **En producción:** [useneto.com.mx](https://www.useneto.com.mx)
+🔗 **Producción:** [useneto.com.mx](https://useneto.com.mx)
 
 ---
 
-## Stack tecnológico
+## ¿Qué hace?
+
+- Conecta tu Gmail vía OAuth (solo lectura) y detecta correos de los principales bancos de México: BBVA, Nu, Amex, Banamex, Santander, HSBC, Banorte, Scotiabank, Inbursa y Citibanamex.
+- Te deja preguntarle a un chat con IA sobre tus finanzas en español natural.
+- Incluye 6 agentes especializados que analizan tus movimientos automáticamente.
+
+---
+
+## Stack técnico
 
 | Capa | Tecnología |
-|------|-----------|
-| Framework | [Next.js 14](https://nextjs.org/) (App Router) |
-| Lenguaje | TypeScript |
-| Auth | [NextAuth v5](https://authjs.dev/) (Google OAuth) |
-| IA | [Claude](https://www.anthropic.com/) (Anthropic) vía [Vercel AI SDK](https://sdk.vercel.ai/) |
-| Datos | Gmail API (solo lectura) |
-| Estilos | Tailwind CSS + CSS variables (tema claro/oscuro) |
-| Deploy | [Vercel](https://vercel.com/) |
+|------|------------|
+| Framework | Next.js 14 (App Router) |
+| Auth | NextAuth v5 + Google Provider |
+| IA | Claude API (claude-sonnet-4-6) |
+| Estilos | Tailwind CSS |
+| Hosting | Vercel |
+| Datos bancarios | Gmail API (scope gmail.readonly) |
+
+**Diseño:** tema azul/blanco corporativo estilo minimalista/futurista (tipografía grande, badges con borde, ilustraciones SVG de líneas finas animadas con stroke-dashoffset, count-up en métricas, scroll reveal, barra de progreso de scroll).
 
 ---
 
-## Correr el proyecto localmente
+## Arquitectura
 
-### 1. Clonar el repo
+### Autenticación y Gmail
+- Gmail OAuth vía NextAuth v5 + Google Provider.
+- Scopes: openid email profile gmail.readonly.
+- OAuth client "Neto Web" publicado en Google Cloud Console.
+- La query de Gmail busca por keywords en el subject + dominios parciales de bancos (límite 50–100 correos).
+
+### Los 6 agentes
+Cada agente vive en app/api/agentes/{nombre}/route.ts, recibe un slice de 30–40 correos como gmailContext, usa un system prompt que fuerza salida en JSON válido, un helper extractJSON con 4 estrategias, max_tokens: 2000, y devuelve JSON de error estructurado en vez de HTTP 500. La UI parsea el JSON en cards por severidad (nunca JSON crudo).
+
+| Agente | Función |
+|--------|---------|
+| AlertasAgent | Alertas URGENTE / IMPORTANTE / INFORMATIVO |
+| CierreAgent | Resumen mensual |
+| ComparadorAgent | Compara tarjetas de crédito MX por cashback |
+| DeduciblesAgent | Detecta gastos deducibles SAT/ISR |
+| FraudeAgent | Detecta patrones sospechosos |
+| DepositosAgent | Detecta depósitos en efectivo / transferencias / SPEI / nómina |
+
+El **Agente Personalizado** es CTA del tier Business.
+
+### Páginas (en app/(app)/)
+chat · estados · gastos · analisis · suscripciones · alertas (auto-ejecuta AlertasAgent) · agentes · presupuesto · conexiones · configuracion · bienvenida (onboarding de 3 pasos) · cuentas/{bbva,amex,nu}
+
+### Rate limiting
+lib/rateLimit.ts — chat 20/hora, agentes 10/hora (en memoria; pendiente migrar a Upstash/Redis).
+
+---
+
+## Planes
+
+| Plan | Precio |
+|------|--------|
+| Free | $0 |
+| Pro | $149 MXN/mes |
+| Business | $499 MXN/mes |
+
+---
+
+## Desarrollo local
 
 ```bash
-git clone <url-del-repo>
-cd neto
-```
-
-### 2. Instalar dependencias
-
-```bash
+# Instalar dependencias
 npm install
+
+# Correr en local
+npm run dev
+# → http://localhost:3000
 ```
 
-### 3. Variables de entorno
+### Variables de entorno
 
-Crea un archivo `.env.local` en la raíz con las siguientes variables:
+Crea un archivo .env.local con:
 
 ```
-# Anthropic (Claude)
 ANTHROPIC_API_KEY=
-
-# Google OAuth (Gmail) — obtenidas en Google Cloud Console
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-
-# NextAuth
-NEXTAUTH_SECRET=        # genera uno con: openssl rand -base64 32
+NEXTAUTH_SECRET=
 NEXTAUTH_URL=http://localhost:3000
-
-# Stripe (prueba gratis de 2 meses + cobro automático al mes 3)
-STRIPE_SECRET_KEY=      # sk_test_... (pruebas) o sk_live_... (producción)
-STRIPE_PRICE_ID=        # price_... del plan recurrente creado en Stripe
-STRIPE_WEBHOOK_SECRET=  # whsec_... del endpoint /api/stripe/webhook
-STRIPE_TRIAL_DAYS=60    # opcional, días de prueba (60 ≈ 2 meses)
 ```
 
-> **Cobro / prueba gratis:** el flujo usa **Stripe Checkout** en modo suscripción
-> con un trial de `STRIPE_TRIAL_DAYS` (60 = ~2 meses) y `payment_method_collection: always`,
-> así Stripe pide la tarjeta al inicio pero no cobra hasta el mes 3. Para activarlo:
-> 1. Crea un producto con un **precio recurrente** en Stripe y copia su `price_...`.
-> 2. Crea un **webhook** apuntando a `/api/stripe/webhook` y copia el `whsec_...`.
-> 3. Pega las llaves en `.env.local` (y en las env vars de Vercel).
-> Sin estas llaves, la app corre normal y el paso de tarjeta del onboarding queda inactivo.
+> ⚠️ Nunca subas credenciales al repositorio ni las compartas en texto plano.
 
-> El proyecto de Google Cloud debe tener habilitada la **Gmail API** y el scope
-> `https://www.googleapis.com/auth/gmail.readonly` en la pantalla de consentimiento OAuth.
+---
 
-### 4. Levantar el servidor de desarrollo
+## Deploy
+
+El deploy es **manual** (decisión propia, no hay auto-deploy desde GitHub):
 
 ```bash
-npm run dev
+npm run build      # build limpio
+vercel --prod      # deploy a producción
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Las variables de entorno están configuradas en Vercel para los 3 entornos (production, preview, development).
 
-### Scripts disponibles
+---
+
+## Flujo de Git
+
+- **main** — rama protegida (requiere PR + 1 approval, sin force push). Nunca se commitea directo.
+- **develop** — rama de trabajo y colaboradores.
 
 ```bash
-npm run dev     # servidor de desarrollo
-npm run build   # build de producción
-npm run start   # servir el build de producción
-npm run lint    # linter
+git add .
+git commit -m "mensaje"
+git push origin develop
 ```
 
 ---
 
-## Estructura de carpetas
+## Roadmap
 
-```
-app/
-  (app)/            Área autenticada de la app (sidebar + topbar vía AppShell)
-    chat/           Contador personal — chat con Claude
-    agentes/        Agentes financieros (alertas, cierre, comparador, etc.)
-    analisis/       Análisis financiero con gráficas
-    alertas/        Alertas en vivo
-    gastos/         Mis gastos
-    suscripciones/  Suscripciones detectadas
-    cuentas/        Vistas por banco (BBVA, Amex, Nu…)
-    conexiones/     Conectar/desconectar Gmail
-    configuracion/  Perfil, plan, preferencias y privacidad
-    bienvenida/     Onboarding de 3 pasos para usuarios nuevos
-  api/
-    chat/           Endpoint de chat (streaming con Claude)
-    agentes/        Endpoints de cada agente
-    analisis/       Datos para la página de análisis
-    gmail/          Lectura de correos bancarios (solo lectura)
-    auth/           Rutas de NextAuth
-    waitlist/       Lista de espera
-  page.tsx          Landing page pública
-  globals.css       Estilos globales + temas claro/oscuro
-
-components/
-  landing/          Secciones e ilustraciones de la landing
-  layout/           AppShell (sidebar, topbar, navegación)
-  chat/             Componentes del chat
-  ui/               Componentes reutilizables
-
-lib/
-  data.ts           Datos financieros de ejemplo (modo demo)
-  rateLimit.ts      Rate limiter en memoria (ver nota más abajo)
-  types.ts          Tipos compartidos
-
-auth.ts             Configuración de NextAuth
-types/              Tipos globales (next-auth, etc.)
-data/               JSON estático (waitlist)
-```
+1. Verificación de Google OAuth (quitar la advertencia de "app no verificada").
+2. Persistencia real con Supabase (hoy todo vive en localStorage).
+3. Integración con /estados y /cuentas/{bbva,amex,nu} con Gmail real (hoy usan datos hardcodeados).
+4. Soporte multi-correo (Outlook / Yahoo).
+5. Crear el correo hola@useneto.com.mx.
+6. Notificaciones nativas al celular (WhatsApp / SMS vía Twilio).
+7. Migrar rate limiting a Upstash/Redis.
+8. Stripe para cobros (solo cuando el negocio ya esté operando — no es prioridad).
 
 ---
 
-## Agentes disponibles
+## Licencia
 
-Los agentes viven en `app/(app)/agentes` y consumen los endpoints de `app/api/agentes`. Cada uno analiza tus datos (correos reales o datos de ejemplo) con Claude:
-
-| Agente | Qué hace |
-|--------|----------|
-| **AlertasAgent** | Detecta situaciones urgentes: vencimientos, cargos no reconocidos, suscripciones por renovar. |
-| **CierreAgent** | Genera tu resumen financiero mensual con categorías, KPIs y recomendaciones. |
-| **ComparadorAgent** | Analiza tus patrones de gasto y calcula qué tarjeta de crédito mexicana te da más cashback. |
-| **DeduciblesAgent** | Detecta gastos deducibles de ISR y arma el reporte fiscal para tu contador. |
-| **FraudeAgent** | Detecta cargos duplicados, montos inusuales y patrones sospechosos. |
-
----
-
-## Flujo de trabajo con Git (colaboradores)
-
-- **No trabajes directo sobre `main`** — esa rama es producción y se despliega automáticamente.
-- Crea tu trabajo en una rama `feature/<nombre>` (o sobre `develop` si existe).
-- Abre un **Pull Request hacia `develop`** para revisión.
-- Una vez aprobado y validado en `develop`, se integra a `main` para liberar a producción.
-
-```bash
-git checkout -b feature/mi-cambio
-# ...trabaja...
-git push origin feature/mi-cambio
-# Abre el PR hacia develop
-```
-
----
-
-## Notas
-
-- **Rate limiting:** `lib/rateLimit.ts` es un limiter **en memoria** (20 mensajes/hora en chat, 10/hora por agente). Funciona para un solo proceso, pero en producción serverless debe migrarse a **Redis / Upstash** para ser confiable entre instancias. Hay un `TODO` en el archivo.
-- **Privacidad:** Neto nunca almacena tus correos; solo extrae montos y comercios necesarios para responder. El acceso a Gmail es de solo lectura y revocable en cualquier momento.
-
----
-
-Hecho en Monterrey, México 🇲🇽
+Propietario — Neto. Todos los derechos reservados.
