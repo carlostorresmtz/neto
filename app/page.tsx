@@ -225,18 +225,18 @@ export default function LandingPage() {
       {/* ── CREDIBILITY ── */}
       <section style={{ padding: "0 24px 72px", textAlign: "center" }}>
         <p style={{ fontSize: 12, color: "var(--text3)", marginBottom: 20 }}>
-          Construido en Monterrey, México 🇲🇽
+          Construido en Monterrey, México
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, justifyContent: "center" }}>
           {[
-            "🔒 OAuth 2.0 de Google",
-            "🤖 Powered by Claude AI de Anthropic",
-            "⚡ Desplegado en Vercel · 99.9% uptime",
+            "Solo lectura",
+            "Tus datos nunca se comparten",
+            "Conexión segura con Gmail",
           ].map(badge => (
             <div key={badge} style={{
-              background: "var(--card)", border: "1px solid var(--border)",
+              background: "transparent", border: "1px solid var(--hairline)",
               borderRadius: 100, padding: "7px 18px",
-              fontSize: 12, color: "var(--text2)",
+              fontSize: 13, color: "var(--text3)",
             }}>
               {badge}
             </div>
