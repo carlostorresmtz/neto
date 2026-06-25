@@ -5,6 +5,7 @@ import FAQ from "@/components/landing/FAQ";
 import ComingSoon from "@/components/landing/ComingSoon";
 import Reveal from "@/components/landing/Reveal";
 import SectionHeading from "@/components/landing/SectionHeading";
+import HeaderLogo from "@/components/landing/HeaderLogo";
 import PricingSection from "@/components/landing/PricingSection";
 import IllustrationPainPoint1 from "@/components/landing/illustrations/IllustrationPainPoint1";
 import IllustrationPainPoint2 from "@/components/landing/illustrations/IllustrationPainPoint2";
@@ -112,19 +113,7 @@ export default function LandingPage() {
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid #E2E8F0",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 30, height: 30, background: "var(--accent)", borderRadius: 8,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="1,11 4,6 7,9 11,3 15,5"/>
-            </svg>
-          </div>
-          <span style={{ fontSize: 19, lineHeight: 1, color: "#0F172A", fontWeight: 500, letterSpacing: "-0.02em" }}>
-            Neto
-          </span>
-        </div>
+        <HeaderLogo />
 
         <nav className="land-nav">
           <a href="#como-funciona" className="land-nav-link">Cómo funciona</a>

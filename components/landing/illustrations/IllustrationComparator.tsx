@@ -37,10 +37,6 @@ export default function IllustrationComparator() {
           style={{ transitionDelay: `${0.35 + i * 0.13}s`, opacity: b.accent ? 1 : 0.4 }}
         />
       ))}
-
-      {/* crown node on winner */}
-      <circle className="draw-fade" cx="210" cy={base - 78 - 9} r="3.5" fill={ACCENT} style={{ transitionDelay: "1.15s" }} />
-      <polyline className="draw-line" pathLength={1} points="203,116 217,116" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" style={{ transitionDelay: "1.25s" }} />
     </LineArt>
   );
 }
