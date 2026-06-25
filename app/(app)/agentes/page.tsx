@@ -103,11 +103,19 @@ function LoadingDots() {
   );
 }
 
-function ErrorMsg() {
+type ErrorKind = "rate" | "generic";
+
+function ErrorMsg({ kind = "generic" }: { kind?: ErrorKind }) {
+  const title = kind === "rate"
+    ? "Alcanzaste el límite de ejecuciones de este agente."
+    : "No se pudo completar el análisis.";
+  const sub = kind === "rate"
+    ? "Espera unos minutos e intenta de nuevo."
+    : "Espera unos segundos e intenta de nuevo.";
   return (
     <div style={{ textAlign: "center", padding: "24px 0" }}>
-      <p style={{ fontSize: 13, color: "var(--text2)", margin: "0 0 4px", fontWeight: 500 }}>No se pudo completar el análisis.</p>
-      <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>Espera unos segundos e intenta de nuevo.</p>
+      <p style={{ fontSize: 13, color: "var(--text2)", margin: "0 0 4px", fontWeight: 500 }}>{title}</p>
+      <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>{sub}</p>
     </div>
   );
 }
@@ -189,15 +197,18 @@ function AlertasDisplay({ data }: { data: AlertasResult }) {
 function CierreModal({ onClose, gmailMessages }: { onClose: () => void; gmailMessages: GmailMessage[] | null }) {
   const [data, setData]       = useState<CierreResult | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(false);
+  const [errKind, setErrKind] = useState<ErrorKind | null>(null);
 
   useEffect(() => {
     const body = gmailMessages && gmailMessages.length > 0
       ? JSON.stringify({ gmailContext: gmailMessages }) : JSON.stringify({});
     fetch("/api/agentes/cierre", { method: "POST", headers: { "Content-Type": "application/json" }, body })
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => { setError(true); setLoading(false); });
+      .then(async r => {
+        if (r.status === 429) { setErrKind("rate"); setLoading(false); return; }
+        if (!r.ok) throw new Error();
+        const d = await r.json(); setData(d); setLoading(false);
+      })
+      .catch(() => { setErrKind("generic"); setLoading(false); });
   }, [gmailMessages]);
 
   const maxCat = Math.max(...(data?.top_categorias?.map(c => c.monto) ?? [1]), 1);
@@ -226,7 +237,7 @@ function CierreModal({ onClose, gmailMessages }: { onClose: () => void; gmailMes
             </p>
           </div>
         )}
-        {error && <ErrorMsg />}
+        {errKind && <ErrorMsg kind={errKind} />}
 
         {data && !loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
@@ -427,8 +438,8 @@ function DeduciblesDisplay({ data }: { data: DeduciblesResult }) {
       {data.gastosDeducibles?.length > 0 && (
         <div>
           <SectionLabel>Gastos analizados</SectionLabel>
-          <div style={{ border: "1px solid var(--border)", borderRadius: 10, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <div style={{ border: "1px solid var(--border)", borderRadius: 10, overflowX: "auto", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+            <table style={{ width: "100%", minWidth: 460, borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ background: "var(--bg3)" }}>
                   {["Fecha", "Comercio", "Monto", "Categoría", "Deducible"].map(h => (
@@ -621,7 +632,7 @@ const BADGE_STYLE: Record<string, React.CSSProperties> = {
 };
 
 /* ── AgentBody ── */
-function AgentBody({ state, agentName, loadingText, children }: { state: AgentState; agentName: string; loadingText?: string; children?: React.ReactNode }) {
+function AgentBody({ state, agentName, loadingText, errorKind, children }: { state: AgentState; agentName: string; loadingText?: string; errorKind?: ErrorKind; children?: React.ReactNode }) {
   if (state === "idle") return (
     <div style={{ textAlign: "center", padding: "28px 0" }}>
       <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>Presiona el botón para analizar tus datos.</p>
@@ -637,7 +648,7 @@ function AgentBody({ state, agentName, loadingText, children }: { state: AgentSt
       </div>
     </div>
   );
-  if (state === "error") return <ErrorMsg />;
+  if (state === "error") return <ErrorMsg kind={errorKind} />;
   return <>{children}</>;
 }
 
@@ -722,6 +733,9 @@ export default function AgentesPage() {
   const [depData,      setDepData]      = useState<DepositosResult | null>(null);
   const [depTs,        setDepTs]        = useState<number | null>(null);
 
+  // Tipo de error por agente (para distinguir rate-limit de error transitorio).
+  const [agentErr, setAgentErr] = useState<Record<string, ErrorKind | undefined>>({});
+
   useEffect(() => {
     if (!session?.accessToken) return;
     fetch("/api/gmail/messages")
@@ -740,9 +754,10 @@ export default function AgentesPage() {
   [gmailMessages]);
 
   const runAlertas = useCallback(async () => {
-    setAlertasState("loading"); setAlertasData(null);
+    setAlertasState("loading"); setAlertasData(null); setAgentErr(p => ({ ...p, alertas: undefined }));
     try {
       const r = await fetch("/api/agentes/alertas", { method: "POST", headers: { "Content-Type": "application/json" }, body: gmailBody() });
+      if (r.status === 429) { setAgentErr(p => ({ ...p, alertas: "rate" })); setAlertasState("error"); return; }
       if (!r.ok) throw new Error();
       const d: AlertasResult = await r.json();
       setAlertasData(d); setAlertasState("done"); setAlertasTs(Date.now());
@@ -753,43 +768,47 @@ export default function AgentesPage() {
       const level2 = urgentes2 > 0 ? "urgent" : importantes2 > 0 ? "important" : "info";
       localStorage.setItem("neto_alert_count", JSON.stringify({ count: count2, level: count2 > 0 ? level2 : null }));
       window.dispatchEvent(new Event("neto-alertas-update"));
-    } catch { setAlertasState("error"); }
+    } catch { setAgentErr(p => ({ ...p, alertas: "generic" })); setAlertasState("error"); }
   }, [gmailBody]);
 
   const runComparador = useCallback(async () => {
-    setCompState("loading"); setCompData(null);
+    setCompState("loading"); setCompData(null); setAgentErr(p => ({ ...p, comparador: undefined }));
     try {
       const r = await fetch("/api/agentes/comparador", { method: "POST", headers: { "Content-Type": "application/json" }, body: gmailBody() });
+      if (r.status === 429) { setAgentErr(p => ({ ...p, comparador: "rate" })); setCompState("error"); return; }
       if (!r.ok) throw new Error();
       setCompData(await r.json()); setCompState("done"); setCompTs(Date.now());
-    } catch { setCompState("error"); }
+    } catch { setAgentErr(p => ({ ...p, comparador: "generic" })); setCompState("error"); }
   }, [gmailBody]);
 
   const runDeducibles = useCallback(async () => {
-    setDedState("loading"); setDedData(null);
+    setDedState("loading"); setDedData(null); setAgentErr(p => ({ ...p, deducibles: undefined }));
     try {
       const r = await fetch("/api/agentes/deducibles", { method: "POST", headers: { "Content-Type": "application/json" }, body: gmailBody() });
+      if (r.status === 429) { setAgentErr(p => ({ ...p, deducibles: "rate" })); setDedState("error"); return; }
       if (!r.ok) throw new Error();
       setDedData(await r.json()); setDedState("done"); setDedTs(Date.now());
-    } catch { setDedState("error"); }
+    } catch { setAgentErr(p => ({ ...p, deducibles: "generic" })); setDedState("error"); }
   }, [gmailBody]);
 
   const runFraude = useCallback(async () => {
-    setFraudeState("loading"); setFraudeData(null);
+    setFraudeState("loading"); setFraudeData(null); setAgentErr(p => ({ ...p, fraude: undefined }));
     try {
       const r = await fetch("/api/agentes/fraude", { method: "POST", headers: { "Content-Type": "application/json" }, body: gmailBody() });
+      if (r.status === 429) { setAgentErr(p => ({ ...p, fraude: "rate" })); setFraudeState("error"); return; }
       if (!r.ok) throw new Error();
       setFraudeData(await r.json()); setFraudeState("done"); setFraudeTs(Date.now());
-    } catch { setFraudeState("error"); }
+    } catch { setAgentErr(p => ({ ...p, fraude: "generic" })); setFraudeState("error"); }
   }, [gmailBody]);
 
   const runDepositos = useCallback(async () => {
-    setDepState("loading"); setDepData(null);
+    setDepState("loading"); setDepData(null); setAgentErr(p => ({ ...p, depositos: undefined }));
     try {
       const r = await fetch("/api/agentes/depositos", { method: "POST", headers: { "Content-Type": "application/json" }, body: gmailBody() });
+      if (r.status === 429) { setAgentErr(p => ({ ...p, depositos: "rate" })); setDepState("error"); return; }
       if (!r.ok) throw new Error();
       setDepData(await r.json()); setDepState("done"); setDepTs(Date.now());
-    } catch { setDepState("error"); }
+    } catch { setAgentErr(p => ({ ...p, depositos: "generic" })); setDepState("error"); }
   }, [gmailBody]);
 
   const isLoadingGmail = !!session?.accessToken && !gmailLoaded;
@@ -853,7 +872,7 @@ export default function AgentesPage() {
             <RunButton state={alertasState} onRun={runAlertas} />
           </AgentCardHeader>
           <div style={{ padding: "20px 24px" }}>
-            <AgentBody state={alertasState} agentName="AlertasAgent">
+            <AgentBody state={alertasState} agentName="AlertasAgent" errorKind={agentErr.alertas}>
               {alertasData && <AlertasDisplay data={alertasData} />}
             </AgentBody>
           </div>
@@ -884,7 +903,7 @@ export default function AgentesPage() {
             <RunButton state={compState} onRun={runComparador} label="Analizar mis gastos" />
           </AgentCardHeader>
           <div style={{ padding: "20px 24px" }}>
-            <AgentBody state={compState} agentName="ComparadorAgent">
+            <AgentBody state={compState} agentName="ComparadorAgent" errorKind={agentErr.comparador}>
               {compData && <ComparadorDisplay data={compData} />}
             </AgentBody>
           </div>
@@ -900,7 +919,7 @@ export default function AgentesPage() {
             <RunButton state={dedState} onRun={runDeducibles} label="Generar reporte" />
           </AgentCardHeader>
           <div style={{ padding: "20px 24px" }}>
-            <AgentBody state={dedState} agentName="DeduciblesAgent">
+            <AgentBody state={dedState} agentName="DeduciblesAgent" errorKind={agentErr.deducibles}>
               {dedData && <DeduciblesDisplay data={dedData} />}
             </AgentBody>
           </div>
@@ -916,7 +935,7 @@ export default function AgentesPage() {
             <RunButton state={fraudeState} onRun={runFraude} label="Escanear movimientos" />
           </AgentCardHeader>
           <div style={{ padding: "20px 24px" }}>
-            <AgentBody state={fraudeState} agentName="FraudeAgent">
+            <AgentBody state={fraudeState} agentName="FraudeAgent" errorKind={agentErr.fraude}>
               {fraudeData && <FraudeDisplay data={fraudeData} />}
             </AgentBody>
           </div>
@@ -932,7 +951,7 @@ export default function AgentesPage() {
             <RunButton state={depState} onRun={runDepositos} label="Buscar mis ingresos" color="#16a34a" />
           </AgentCardHeader>
           <div style={{ padding: "20px 24px" }}>
-            <AgentBody state={depState} agentName="DepositosAgent" loadingText="DepositosAgent buscando tus ingresos…">
+            <AgentBody state={depState} agentName="DepositosAgent" loadingText="DepositosAgent buscando tus ingresos…" errorKind={agentErr.depositos}>
               {depData && <DepositosDisplay data={depData} />}
             </AgentBody>
           </div>

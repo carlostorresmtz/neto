@@ -1,5 +1,15 @@
 import { subscriptions } from "@/lib/data";
 
+// Luminancia aproximada: evita iniciales casi blancas (ej. iCloud) sobre el tile claro.
+function isLightHex(hex: string): boolean {
+  const m = hex.replace("#", "");
+  if (m.length < 6) return false;
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b > 200;
+}
+
 export default function SuscripcionesPage() {
   const total = subscriptions.reduce((s, i) => s + i.amount, 0);
 
@@ -33,7 +43,7 @@ export default function SuscripcionesPage() {
         <div key={sub.id} className="sub-item" style={i === subscriptions.length - 1 ? { borderBottom: "none" } : {}}>
           <div
             className="sub-icon"
-            style={{ color: sub.color, borderColor: sub.borderColor, background: sub.bgColor }}
+            style={{ color: isLightHex(sub.color) ? "var(--text2)" : sub.color }}
           >
             {sub.initials}
           </div>

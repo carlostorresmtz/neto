@@ -44,8 +44,10 @@ const SUGGESTION_CARDS = [
   },
 ];
 
-function now() {
-  return new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+function fmtTime(d?: Date | string) {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+  return date.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
 
 const BANNER_DANGER: React.CSSProperties = {
@@ -362,7 +364,7 @@ export default function ChatPage() {
                     )}
                     <p style={{ whiteSpace: "pre-wrap" }}>{m.content}</p>
                   </div>
-                  <div className="msg-time">{now()}</div>
+                  <div className="msg-time">{fmtTime(m.createdAt)}</div>
                 </div>
               </div>
             ))}
