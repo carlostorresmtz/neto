@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neto — Tu contador personal</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f0e;--bg2:#141614;--bg3:#1c1f1c;--card:#1e211e;
+  --border:#2a2e2a;--border2:#333733;
+  --accent:#b8f566;--accent2:#7ed957;
+  --text:#e8ece4;--text2:#8a9186;--text3:#5a5f58;
+  --danger:#f56666;--warn:#f5c166;--info:#66c4f5;
+  --radius:14px;--radius-sm:8px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;height:100vh;overflow:hidden}
+.app{display:grid;grid-template-columns:250px 1fr;grid-template-rows:52px 1fr;height:100vh;overflow:hidden}
+@media(max-width:700px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;top:52px;left:0;right:0;bottom:0;z-index:50;transform:translateX(0);transition:transform .25s ease;width:100%;overflow-y:auto}
+  .sidebar.hidden{transform:translateX(-100%);pointer-events:none}
+  .hamburger{display:flex !important}
+  .back-btn{display:flex !important}
+  .sources-pill{display:none !important}
+}
+
+/* ── TOPBAR ── */
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.brand{display:flex;align-items:center;gap:9px}
+.brand-dot{width:24px;height:24px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.brand-dot svg{width:12px;height:12px;stroke:var(--bg);fill:none;stroke-width:2.5;stroke-linecap:round}
+.brand-name{font-family:'Instrument Serif',serif;font-size:18px}
+.brand-badge{font-size:10px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);padding:1px 7px;border-radius:20px}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.sources-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:3px 10px;border-radius:20px;cursor:pointer;transition:border-color .15s}
+.sources-pill:hover{border-color:var(--border2)}
+.src-dot{width:6px;height:6px;border-radius:50%;transition:background .3s}
+.status-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:20px}
+.status-pill.live{color:var(--accent2);background:#1a2318;border-color:#2a3d26}
+.status-dot{width:5px;height:5px;background:var(--text3);border-radius:50%}
+.status-dot.live{background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hamburger{display:none;align-items:center;justify-content:center;width:34px;height:34px;border:none;background:none;cursor:pointer;color:var(--text2);flex-shrink:0}
+.hamburger svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+.back-btn{display:none;align-items:center;gap:6px;border:none;background:none;cursor:pointer;color:var(--text2);font-size:13px;font-family:'DM Sans',sans-serif;padding:6px 10px 6px 4px}
+.back-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── SIDEBAR ── */
+.sidebar{padding:10px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;background:var(--bg);overflow-y:auto}
+.nav-section{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;padding:9px 10px 2px;margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:#1a2318;color:var(--accent);border:1px solid #2a3d26}
+.nav-icon{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--bg3);border:1px solid var(--border2);font-size:10px;padding:1px 6px;border-radius:10px;color:var(--text3)}
+.nav-item.active .nav-badge{background:#2a3d26;border-color:#3a5232;color:var(--accent2)}
+
+/* ── MAIN / VIEWS ── */
+.main{overflow:hidden;display:flex;flex-direction:column}
+.view{display:none;flex-direction:column;flex:1;overflow:hidden}
+.view.active{display:flex}
+.page{flex:1;overflow-y:auto;padding:22px}
+.page-title{font-family:'Instrument Serif',serif;font-size:21px;margin-bottom:3px}
+.page-sub{font-size:12px;color:var(--text2);margin-bottom:18px}
+.section-title{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;margin-top:18px}
+
+/* ── STATS BAR ── */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
+.stat-block{background:var(--bg);padding:11px 14px}
+.stat-val{font-size:17px;font-family:'Instrument Serif',serif;margin-bottom:1px}
+.stat-lbl{font-size:10px;color:var(--text3)}
+.stat-val.danger{color:var(--danger)}
+.stat-val.good{color:var(--accent2)}
+.stat-val.warn{color:var(--warn)}
+
+/* ── DEMO BANNER ── */
+.demo-banner{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#1a1a10;border-bottom:1px solid #3a3820;font-size:12px;color:#c8c060;flex-shrink:0}
+.demo-banner svg{width:14px;height:14px;stroke:#c8c060;fill:none;stroke-width:2;flex-shrink:0}
+.demo-banner a{color:var(--accent2);cursor:pointer;text-decoration:underline}
+
+/* ── CHAT ── */
+.messages{flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:13px}
+.msg{display:flex;gap:9px;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.msg-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;margin-top:2px}
+.msg-avatar.ai{background:#1a2318;border:1px solid #2a3d26;color:var(--accent)}
+.msg-avatar.user{background:var(--bg3);border:1px solid var(--border2);color:var(--text2)}
+.msg-content{max-width:74%;display:flex;flex-direction:column;gap:3px}
+.msg.user .msg-content{align-items:flex-end}
+.bubble{padding:11px 14px;border-radius:var(--radius);font-size:13px;line-height:1.6}
+.bubble.ai{background:var(--card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:3px}
+.bubble.user{background:#1a2318;border:1px solid #2a3d26;color:var(--accent);border-bottom-right-radius:3px}
+.msg-time{font-size:10px;color:var(--text3)}
+.msg-source{font-size:10px;color:var(--text3)}
+.msg-source span{color:var(--accent2)}
+.source-tag{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:2px 8px;margin-bottom:6px}
+.source-tag .stdot{width:5px;height:5px;border-radius:50%}
+
+/* ── RICH ELEMENTS ── */
+.insight-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.insight-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px}
+.insight-val{font-size:18px;font-family:'Instrument Serif',serif;color:var(--text);margin-bottom:1px}
+.insight-val.danger{color:var(--danger)}
+.insight-val.warn{color:var(--warn)}
+.insight-val.good{color:var(--accent2)}
+.insight-label{font-size:10px;color:var(--text3)}
+.bar-row{display:flex;align-items:center;gap:7px;margin-top:5px}
+.bar-label{color:var(--text2);min-width:110px;font-size:11px}
+.bar-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s ease}
+.bar-fill.warn{background:var(--warn)}
+.bar-fill.danger{background:var(--danger)}
+.bar-fill.info{background:var(--info)}
+.bar-val{color:var(--text);min-width:60px;text-align:right;font-size:11px;font-weight:500}
+.alert-bubble{background:#1f1a14;border:1px solid #3d3020;border-radius:var(--radius-sm);padding:9px 11px;margin-top:7px;display:flex;gap:7px;font-size:12px;color:#c8a060;align-items:flex-start}
+.chip-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.chip{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:3px 11px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .15s}
+.chip:hover{background:#1a2318;border-color:#2a3d26;color:var(--accent)}
+
+/* ── INPUT ── */
+.input-area{padding:10px 18px 14px;border-top:1px solid var(--border);flex-shrink:0}
+.input-box{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;transition:border-color .15s}
+.input-box:focus-within{border-color:var(--accent2)}
+.input-box input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif}
+.input-box input::placeholder{color:var(--text3)}
+.send-btn{background:var(--accent);border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
+.send-btn:hover{background:var(--accent2)}
+.send-btn svg{width:12px;height:12px;stroke:var(--bg);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.typing{display:flex;gap:4px;align-items:center;padding:2px 0}
+.typing span{width:5px;height:5px;background:var(--text3);border-radius:50%;animation:bounce .9s infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+
+/* ── TABLES / CARDS ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+.data-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:border-color .15s}
+.data-card:hover{border-color:var(--border2)}
+.data-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.data-card-name{font-size:12px;font-weight:500;color:var(--text)}
+.badge{font-size:10px;padding:2px 8px;border-radius:10px}
+.badge-green{background:#1a2318;color:var(--accent2);border:1px solid #2a3d26}
+.badge-red{background:#1f1414;color:var(--danger);border:1px solid #3d2020}
+.badge-warn{background:#1f1a10;color:var(--warn);border:1px solid #3d3020}
+.badge-info{background:#101a1f;color:var(--info);border:1px solid #203040}
+.data-card-val{font-size:22px;font-family:'Instrument Serif',serif;margin-bottom:3px}
+.data-card-val.danger{color:var(--danger)}
+.data-card-val.good{color:var(--accent2)}
+.data-card-val.warn{color:var(--warn)}
+.data-card-meta{font-size:10px;color:var(--text3)}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:6px 10px;border-bottom:1px solid var(--border);font-weight:500}
+.data-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text2)}
+.data-table td:first-child{color:var(--text)}
+.data-table tr:hover td{background:var(--card)}
+.data-table td.amount{font-weight:500;font-size:13px}
+.data-table td.amount.neg{color:var(--danger)}
+.data-table td.amount.pos{color:var(--accent2)}
+.cat-pill span{background:var(--bg3);border:1px solid var(--border);font-size:10px;padding:2px 7px;border-radius:10px;color:var(--text3)}
+.src-icon{font-size:10px;padding:1px 6px;border-radius:8px}
+.src-gmail{background:#1f1414;color:#ea4335;border:1px solid #3d2020}
+.src-sheets{background:#121f14;color:#34a853;border:1px solid #1a3d22}
+
+/* subs */
+.sub-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.sub-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg3);border:1px solid var(--border)}
+.sub-info{flex:1}
+.sub-name{font-size:13px;font-weight:500;color:var(--text)}
+.sub-next{font-size:11px;color:var(--text3);margin-top:1px}
+.sub-amount{font-size:14px;font-family:'Instrument Serif',serif;text-align:right}
+.sub-cancel{font-size:10px;color:var(--danger);cursor:pointer;margin-top:2px;text-align:right}
+.sub-cancel:hover{text-decoration:underline}
+
+/* alerts */
+.alert-row{display:flex;gap:11px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:7px;cursor:pointer;transition:border-color .15s}
+.alert-row:hover{border-color:var(--border2)}
+.alert-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.alert-icon.warn{background:#1f1a10;border:1px solid #3d3020}
+.alert-icon.danger{background:#1f1414;border:1px solid #3d2020}
+.alert-icon.info{background:#101a1f;border:1px solid #203040}
+.alert-icon svg{width:13px;height:13px;fill:none;stroke-width:2;stroke-linecap:round}
+.alert-icon.warn svg{stroke:var(--warn)}
+.alert-icon.danger svg{stroke:var(--danger)}
+.alert-icon.info svg{stroke:var(--info)}
+.alert-body-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.alert-body-desc{font-size:12px;color:var(--text2)}
+.alert-date{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* account */
+.account-header{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+.account-name{font-size:17px;font-family:'Instrument Serif',serif;margin-bottom:3px}
+.account-number{font-size:11px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.account-balance{font-size:28px;font-family:'Instrument Serif',serif}
+.account-balance.danger{color:var(--danger)}
+.account-balance.good{color:var(--accent2)}
+.account-meta{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.account-meta-item{font-size:10px;color:var(--text3)}
+.account-meta-item span{display:block;font-size:12px;color:var(--text);margin-top:1px}
+.totals-row{display:flex;gap:10px;padding:12px 14px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:14px}
+.totals-item{flex:1;text-align:center}
+.totals-item .t-val{font-size:15px;font-family:'Instrument Serif',serif;margin-bottom:1px}
+.totals-item .t-lbl{font-size:10px;color:var(--text3)}
+
+/* ── MIS GASTOS ── */
+.gastos-page{flex:1;overflow-y:auto;padding:22px}
+.gastos-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.filter-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.filter-btn:hover{color:var(--text);border-color:var(--text3)}
+.filter-btn.active{background:#1a2318;border-color:#2a3d26;color:var(--accent)}
+.gastos-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.gastos-total-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px}
+.gastos-total-val{font-size:20px;font-family:'Instrument Serif',serif;margin-bottom:2px}
+.gastos-total-val.danger{color:var(--danger)}
+.gastos-total-val.warn{color:var(--warn)}
+.gastos-total-val.good{color:var(--accent2)}
+.gastos-total-lbl{font-size:10px;color:var(--text3)}
+.cat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color .2s}
+.cat-card:hover{border-color:var(--border2)}
+.cat-card.open{border-color:var(--border2)}
+.cat-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.cat-emoji{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--bg3);border:1px solid var(--border)}
+.cat-info{flex:1;min-width:0}
+.cat-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.cat-bar-wrap{display:flex;align-items:center;gap:8px}
+.cat-bar-track{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.cat-bar-pct{font-size:10px;color:var(--text3);min-width:28px;text-align:right}
+.cat-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.cat-amount{font-size:15px;font-family:'Instrument Serif',serif;color:var(--text)}
+.cat-count{font-size:10px;color:var(--text3)}
+.cat-chevron{width:14px;height:14px;stroke:var(--text3);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0;transition:transform .2s}
+.cat-card.open .cat-chevron{transform:rotate(180deg)}
+.cat-transactions{display:none;border-top:1px solid var(--border)}
+.cat-card.open .cat-transactions{display:block}
+.cat-tx{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:12px;transition:background .1s}
+.cat-tx:last-child{border-bottom:none}
+.cat-tx:hover{background:var(--bg3)}
+.cat-tx-info{flex:1;min-width:0}
+.cat-tx-name{color:var(--text);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-tx-meta{color:var(--text3);font-size:10px;margin-top:1px;display:flex;align-items:center;gap:6px}
+.cat-tx-amount{font-size:13px;font-weight:500;color:var(--danger);flex-shrink:0}
+.cat-tx-amount.pos{color:var(--accent2)}
+.tx-account-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.reassign-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:10px;padding:2px 6px;border-radius:4px;font-family:'DM Sans',sans-serif;transition:all .15s}
+.reassign-btn:hover{background:var(--bg3);color:var(--text2)}
+.reassign-dropdown{position:relative;display:inline-block}
+.reassign-menu{display:none;position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);z-index:20;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.reassign-menu.show{display:block}
+.reassign-option{display:block;width:100%;text-align:left;padding:8px 12px;font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .1s}
+.reassign-option:hover{background:var(--bg3);color:var(--text)}
+.conn-page{flex:1;overflow-y:auto;padding:22px}
+.conn-grid{display:flex;flex-direction:column;gap:12px}
+.conn-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.conn-card.connected{border-color:#2a3d26}
+.conn-card-header{display:flex;align-items:center;gap:14px;padding:18px}
+.conn-service-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--border)}
+.conn-service-icon.gmail{background:#1f1414;border-color:#3d2020}
+.conn-service-icon.sheets{background:#121f14;border-color:#1a3d22}
+.conn-service-info{flex:1}
+.conn-service-name{font-size:15px;font-weight:500;color:var(--text);margin-bottom:2px}
+.conn-service-status{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px}
+.conn-service-status.live{color:var(--accent2)}
+.conn-status-dot{width:6px;height:6px;border-radius:50%;background:var(--text3)}
+.conn-status-dot.live{background:var(--accent2)}
+.conn-card-body{padding:0 18px 18px;display:flex;flex-direction:column;gap:10px}
+.conn-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.conn-meta-block{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px}
+.conn-meta-val{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px}
+.conn-meta-lbl{font-size:10px;color:var(--text3)}
+.conn-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-google{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dadce0;border-radius:6px;padding:8px 16px;font-size:13px;color:#3c4043;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .15s}
+.btn-google:hover{background:#f8f9fa;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.btn-google svg{width:16px;height:16px;flex-shrink:0}
+.btn-sm{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-sm:hover{background:var(--bg);color:var(--text)}
+.btn-sm.primary{background:#1a2318;border-color:#2a3d26;color:var(--accent2)}
+.btn-sm.primary:hover{background:#213020}
+.btn-sm.danger-btn{color:var(--danger);border-color:#3d2020}
+.btn-sm.danger-btn:hover{background:#1f1414}
+.conn-scopes{font-size:11px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;line-height:1.7}
+.conn-scopes strong{color:var(--text2)}
+.sheets-id-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.sheets-id-label{font-size:11px;color:var(--text3);margin-bottom:7px}
+.sheets-id-row{display:flex;gap:8px;align-items:center}
+.sheets-id-row input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+.sheets-id-row input:focus{border-color:var(--accent2)}
+.sheets-id-row input::placeholder{color:var(--text3)}
+.oauth-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center}
+.oauth-modal-bg.show{display:flex}
+.oauth-modal{background:#fff;border-radius:16px;width:380px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.oauth-header{display:flex;align-items:center;gap:12px;padding:20px 20px 0}
+.oauth-header svg{width:20px;height:20px;flex-shrink:0}
+.oauth-header-text{font-size:14px;font-weight:500;color:#202124}
+.oauth-account{display:flex;align-items:center;gap:12px;padding:16px 20px;margin:16px 20px;background:#f8f9fa;border-radius:10px;border:1px solid #e8eaed;cursor:pointer}
+.oauth-account:hover{background:#f1f3f4}
+.oauth-avatar{width:36px;height:36px;border-radius:50%;background:#4285f4;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#fff;flex-shrink:0}
+.oauth-account-info .name{font-size:13px;font-weight:500;color:#202124}
+.oauth-account-info .email{font-size:12px;color:#5f6368}
+.oauth-scopes-list{padding:0 20px;margin-bottom:16px}
+.oauth-scope-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f1f3f4;font-size:12px;color:#5f6368}
+.oauth-scope-item:last-child{border:none}
+.oauth-scope-item svg{width:15px;height:15px;flex-shrink:0;stroke:#34a853;fill:none;stroke-width:2.5;stroke-linecap:round}
+.oauth-readonly-note{padding:8px 20px 16px;font-size:11px;color:#5f6368;text-align:center}
+.oauth-actions{display:flex;gap:8px;padding:14px 20px;border-top:1px solid #e8eaed;background:#f8f9fa}
+.oauth-btn-cancel{flex:1;background:none;border:1px solid #dadce0;border-radius:6px;padding:9px;font-size:13px;color:#5f6368;cursor:pointer;font-family:'DM Sans',sans-serif}
+.oauth-btn-allow{flex:2;background:#4285f4;border:none;border-radius:6px;padding:9px;font-size:13px;color:#fff;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
+.oauth-btn-allow:hover{background:#3574e2}
+.privacy-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:12px;color:var(--text2);line-height:1.7}
+.privacy-card strong{color:var(--text)}
+.privacy-card a{color:var(--accent2);cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- ── OAUTH MODAL ── -->
+<div class="oauth-modal-bg" id="oauth-modal">
+  <div class="oauth-modal">
+    <div class="oauth-header">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      <div class="oauth-header-text" id="oauth-title">Iniciar sesión con Google</div>
+    </div>
+    <div class="oauth-account" onclick="authorizeOAuth()">
+      <div class="oauth-avatar">CG</div>
+      <div class="oauth-account-info">
+        <div class="name">Carlos González</div>
+        <div class="email">carlos.gonzalez@gmail.com</div>
+      </div>
+    </div>
+    <div class="oauth-scopes-list" id="oauth-scopes-list"></div>
+    <div class="oauth-readonly-note">Solo lectura — Neto nunca escribe ni modifica tus datos.</div>
+    <div class="oauth-actions">
+      <button class="oauth-btn-cancel" onclick="closeOAuth()">Cancelar</button>
+      <button class="oauth-btn-allow" onclick="authorizeOAuth()">Permitir acceso</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:4px">
+    <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menú">
+      <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="brand">
+      <div class="brand-dot"><svg viewBox="0 0 14 14"><polyline points="2,8 5,5 8,9 12,3"/></svg></div>
+      <span class="brand-name">Neto</span>
+      <span class="brand-badge">beta</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="sources-pill" onclick="goToConexiones()" title="Ver conexiones">
+      <span class="src-dot" id="pill-gmail" style="background:var(--text3)" title="Gmail"></span>
+      <span style="font-size:10px">Gmail</span>
+      <span style="color:var(--border2);margin:0 2px">·</span>
+      <span class="src-dot" id="pill-sheets" style="background:var(--text3)" title="Sheets"></span>
+      <span style="font-size:10px">Sheets</span>
+    </div>
+    <div class="status-pill" id="topbar-status">
+      <span class="status-dot" id="topbar-dot"></span>
+      <span id="topbar-status-text">Sin conexión</span>
+    </div>
+    <div class="avatar">CG</div>
+  </div>
+</header>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar" id="sidebar">
+  <button class="back-btn" onclick="closeSidebar()">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Cerrar menú
+  </button>
+  <div class="nav-section">Menú</div>
+  <button class="nav-item active" data-view="chat" onclick="showView('chat',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Contador personal
+  </button>
+  <button class="nav-item" data-view="estados" onclick="showView('estados',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    Estados de cuenta
+    <span class="nav-badge">4</span>
+  </button>
+  <button class="nav-item" data-view="gastos" onclick="showView('gastos',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Mis gastos
+  </button>
+  <button class="nav-item" data-view="analisis" onclick="showView('analisis',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Análisis
+  </button>
+  <button class="nav-item" data-view="suscripciones" onclick="showView('suscripciones',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    Suscripciones
+    <span class="nav-badge">7</span>
+  </button>
+  <button class="nav-item" data-view="alertas" onclick="showView('alertas',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    Alertas
+    <span class="nav-badge">3</span>
+  </button>
+  <div class="nav-section">Mis cuentas</div>
+  <button class="nav-item" data-view="bbva" onclick="showView('bbva',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    BBVA Débito
+  </button>
+  <button class="nav-item" data-view="amex" onclick="showView('amex',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    Amex Gold
+  </button>
+  <button class="nav-item" data-view="nu" onclick="showView('nu',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    Nu Crédito
+  </button>
+  <div class="nav-section">Configuración</div>
+  <button class="nav-item" data-view="conexiones" onclick="showView('conexiones',this)">
+    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+    Conexiones
+    <span class="nav-badge" id="conn-badge">0/2</span>
+  </button>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+<!-- CHAT -->
+<div id="view-chat" class="view active">
+  <div class="stats-bar">
+    <div class="stat-block"><div class="stat-val">$42,380</div><div class="stat-lbl">Saldo total combinado</div></div>
+    <div class="stat-block"><div class="stat-val danger">$18,640</div><div class="stat-lbl">Deuda tarjetas</div></div>
+    <div class="stat-block"><div class="stat-val warn">$23,450</div><div class="stat-lbl">Gastado este mes</div></div>
+    <div class="stat-block"><div class="stat-val good">$1,124</div><div class="stat-lbl">Suscripciones/mes</div></div>
+  </div>
+  <div class="demo-banner" id="demo-banner">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Mostrando datos de ejemplo. <a onclick="goToConexiones()">Conecta Gmail o Sheets</a> para ver tus datos reales.
+  </div>
+  <div class="messages" id="messages">
+    <div class="msg">
+      <div class="msg-avatar ai">C</div>
+      <div class="msg-content">
+        <div class="bubble ai">
+          Hola Carlos. Estoy listo para ayudarte con tus finanzas. Conecta tu Gmail o Google Sheets desde la pestaña <strong style="color:var(--accent2)">Conexiones</strong> para que pueda leer tus estados de cuenta reales.<br><br>Mientras tanto puedes explorar la app con datos de ejemplo.
+          <div class="insight-grid">
+            <div class="insight-card"><div class="insight-val warn">$23,450</div><div class="insight-label">Gasto total mayo</div></div>
+            <div class="insight-card"><div class="insight-val danger">$18,640</div><div class="insight-label">Deuda tarjetas</div></div>
+            <div class="insight-card"><div class="insight-val good">$1,240</div><div class="insight-label">Intereses pagados</div></div>
+            <div class="insight-card"><div class="insight-val">7</div><div class="insight-label">Suscripciones activas</div></div>
+          </div>
+          <div class="chip-row">
+            <span class="chip" onclick="askQ('¿En qué categoría gasté más este mes?')">¿En qué gasté más?</span>
+            <span class="chip" onclick="askQ('¿Cuánto pago de intereses al año?')">Ver intereses anuales</span>
+            <span class="chip" onclick="askQ('¿Cuáles son mis suscripciones?')">Ver suscripciones</span>
+            <span class="chip" onclick="askQ('¿Cómo voy vs mi presupuesto?')">Vs presupuesto</span>
+          </div>
+        </div>
+        <div class="msg-time">Hoy 9:04 am</div>
+      </div>
+    </div>
+  </div>
+  <div class="input-area">
+    <div class="input-box">
+      <input type="text" id="chat-input" placeholder="Pregúntale a tu contador…" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="send-btn" onclick="sendMsg()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ESTADOS -->
+<div id="view-estados" class="view">
+  <div class="page">
+    <div class="page-title">Estados de cuenta</div>
+    <div class="page-sub">4 estados leídos automáticamente de tu Gmail este mes</div>
+    <div class="cards-grid">
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">BBVA Débito</span><span class="badge badge-green">Leído</span></div><div class="data-card-val good">$23,740</div><div class="data-card-meta">Saldo disponible · Mayo 2025</div></div>
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">Amex Gold</span><span class="badge badge-red">Vence en 4 días</span></div><div class="data-card-val danger">$12,400</div><div class="data-card-meta">Saldo a pagar · Corte 15 mayo</div></div>
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">Nu Crédito</span><span class="badge badge-warn">Pago mínimo</span></div><div class="data-card-val danger">$6,240</div><div class="data-card-meta">Saldo actual · Corte 20 mayo</div></div>
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">Sheets — Presupuesto</span><span class="badge badge-info">Sheets</span></div><div class="data-card-val">$20,000</div><div class="data-card-meta">Presupuesto mensual definido</div></div>
+    </div>
+    <div class="section-title">Movimientos consolidados</div>
+    <table class="data-table">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Cuenta</th><th>Categoría</th><th>Fuente</th><th>Monto</th></tr></thead>
+      <tbody>
+        <tr><td>26 may</td><td>Uber Eats</td><td>Amex Gold</td><td class="cat-pill"><span>Restaurantes</span></td><td><span class="src-icon src-gmail">Gmail</span></td><td class="amount neg">-$340</td></tr>
+        <tr><td>25 may</td><td>OXXO San Pedro</td><td>BBVA</td><td class="cat-pill"><span>Supermercado</span></td><td><span class="src-icon src-gmail">Gmail</span></td><td class="amount neg">-$180</td></tr>
+        <tr><td>24 may</td><td>Netflix</td><td>Nu</td><td class="cat-pill"><span>Suscripción</span></td><td><span class="src-icon src-gmail">Gmail</span></td><td class="amount neg">-$179</td></tr>
+        <tr><td>23 may</td><td>PEMEX</td><td>BBVA</td><td class="cat-pill"><span>Gasolina</span></td><td><span class="src-icon src-gmail">Gmail</span></td><td class="amount neg">-$850</td></tr>
+        <tr><td>20 may</td><td>Presupuesto mayo</td><td>Sheets</td><td class="cat-pill"><span>Planificación</span></td><td><span class="src-icon src-sheets">Sheets</span></td><td class="amount pos">$20,000</td></tr>
+        <tr><td>20 may</td><td>Depósito nómina</td><td>BBVA Nómina</td><td class="cat-pill"><span>Ingreso</span></td><td><span class="src-icon src-gmail">Gmail</span></td><td class="amount pos">+$18,640</td></tr>
+        <tr><td>15 may</td><td>Adobe CC</td><td>Nu</td><td class="cat-pill"><span>Suscripción</span></td><td><span class="src-icon src-gmail">Gmail</span></td><td class="amount neg">-$289</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ANÁLISIS -->
+<div id="view-analisis" class="view">
+  <div class="page">
+    <div class="page-title">Análisis financiero</div>
+    <div class="page-sub">Basado en Gmail + Sheets — últimos 5 meses</div>
+    <div class="section-title">Gasto por categoría — mayo 2025</div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px">
+      <div class="bar-row"><span class="bar-label">Restaurantes</span><div class="bar-track" style="height:7px;border-radius:3px"><div class="bar-fill danger" style="width:100%"></div></div><span class="bar-val">$6,240</span></div>
+      <div class="bar-row"><span class="bar-label">Supermercado</span><div class="bar-track" style="height:7px;border-radius:3px"><div class="bar-fill warn" style="width:67%"></div></div><span class="bar-val">$4,180</span></div>
+      <div class="bar-row"><span class="bar-label">Gasolina</span><div class="bar-track" style="height:7px;border-radius:3px"><div class="bar-fill" style="width:50%"></div></div><span class="bar-val">$3,100</span></div>
+      <div class="bar-row"><span class="bar-label">Entretenimiento</span><div class="bar-track" style="height:7px;border-radius:3px"><div class="bar-fill info" style="width:45%"></div></div><span class="bar-val">$2,800</span></div>
+      <div class="bar-row"><span class="bar-label">Ropa</span><div class="bar-track" style="height:7px;border-radius:3px"><div class="bar-fill" style="width:30%;background:var(--text3)"></div></div><span class="bar-val">$1,900</span></div>
+    </div>
+    <div class="section-title">Tendencia mensual</div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:100px;margin-bottom:18px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><span style="font-size:9px;color:var(--text3)">$19,200</span><div style="width:100%;background:var(--bg3);border-radius:3px 3px 0 0;height:58px;border:1px solid var(--border)"></div><span style="font-size:9px;color:var(--text3)">Ene</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><span style="font-size:9px;color:var(--text3)">$21,800</span><div style="width:100%;background:var(--bg3);border-radius:3px 3px 0 0;height:66px;border:1px solid var(--border)"></div><span style="font-size:9px;color:var(--text3)">Feb</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><span style="font-size:9px;color:var(--text3)">$18,400</span><div style="width:100%;background:var(--bg3);border-radius:3px 3px 0 0;height:55px;border:1px solid var(--border)"></div><span style="font-size:9px;color:var(--text3)">Mar</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><span style="font-size:9px;color:var(--text3)">$20,100</span><div style="width:100%;background:var(--bg3);border-radius:3px 3px 0 0;height:61px;border:1px solid var(--border)"></div><span style="font-size:9px;color:var(--text3)">Abr</span></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><span style="font-size:9px;color:var(--warn)">$23,450</span><div style="width:100%;background:#1f1a10;border-radius:3px 3px 0 0;height:71px;border:1px solid #3d3020"></div><span style="font-size:9px;color:var(--warn)">May▲</span></div>
+    </div>
+    <div class="cards-grid">
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">Intereses este año</span><span class="badge badge-red">Alto</span></div><div class="data-card-val danger">$14,880</div><div class="data-card-meta">Pagando solo mínimo</div></div>
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">Excedido vs presupuesto</span><span class="badge badge-warn">Sheets</span></div><div class="data-card-val warn">+$3,450</div><div class="data-card-meta">$23,450 vs $20,000</div></div>
+      <div class="data-card"><div class="data-card-top"><span class="data-card-name">Si pagas +$4k/mes</span><span class="badge badge-green">Recomendado</span></div><div class="data-card-val good">$8,400</div><div class="data-card-meta">Ahorro en intereses</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUSCRIPCIONES -->
+<div id="view-suscripciones" class="view">
+  <div class="page">
+    <div class="page-title">Suscripciones activas</div>
+    <div class="page-sub">Detectadas en tus correos bancarios de Gmail</div>
+    <div class="totals-row">
+      <div class="totals-item"><div class="t-val">$1,124</div><div class="t-lbl">Total mensual</div></div>
+      <div class="totals-item"><div class="t-val" style="color:var(--danger)">$13,488</div><div class="t-lbl">Total anual</div></div>
+      <div class="totals-item"><div class="t-val">7</div><div class="t-lbl">Servicios activos</div></div>
+    </div>
+    <div class="sub-item"><div class="sub-icon" style="color:#ff0000;border-color:#3d1a1a;background:#1f1212">Cc</div><div class="sub-info"><div class="sub-name">Adobe Creative Cloud</div><div class="sub-next">15 jun · Nu Crédito · <span style="color:var(--warn)">⚠ el más caro</span></div></div><div><div class="sub-amount" style="color:var(--warn)">$289/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="sub-item"><div class="sub-icon" style="color:#19c37d;border-color:#1a3d2e;background:#121f1a">Gp</div><div class="sub-info"><div class="sub-name">ChatGPT Plus</div><div class="sub-next">18 jun · Amex Gold</div></div><div><div class="sub-amount" style="color:var(--warn)">$220/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="sub-item"><div class="sub-icon" style="color:#e50914;border-color:#3d1a1a;background:#1f1212">N</div><div class="sub-info"><div class="sub-name">Netflix</div><div class="sub-next">1 jun · Nu Crédito</div></div><div><div class="sub-amount">$179/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="sub-item"><div class="sub-icon" style="color:#b146e5;border-color:#2e1a3d;background:#1a121f">Hb</div><div class="sub-info"><div class="sub-name">HBO Max</div><div class="sub-next">22 jun · Amex Gold</div></div><div><div class="sub-amount">$159/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="sub-item"><div class="sub-icon" style="color:#ff0000;border-color:#3d1a1a;background:#1f1212">Yt</div><div class="sub-info"><div class="sub-name">YouTube Premium</div><div class="sub-next">8 jun · BBVA</div></div><div><div class="sub-amount">$119/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="sub-item"><div class="sub-icon" style="color:#1db954;border-color:#1a3d22;background:#121f14">S</div><div class="sub-info"><div class="sub-name">Spotify</div><div class="sub-next">5 jun · Nu Crédito</div></div><div><div class="sub-amount">$99/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="sub-item" style="border-bottom:none"><div class="sub-icon">iC</div><div class="sub-info"><div class="sub-name">iCloud 200GB</div><div class="sub-next">28 jun · BBVA</div></div><div><div class="sub-amount">$29/mes</div><div class="sub-cancel">Cancelar</div></div></div>
+    <div class="alert-bubble" style="margin-top:14px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--warn);fill:none;stroke-width:2;flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Adobe CC + ChatGPT = 45% de tus suscripciones. Si ya tienes Canva, cancelar Adobe ahorra $289/mes.</div>
+  </div>
+</div>
+
+<!-- ALERTAS -->
+<div id="view-alertas" class="view">
+  <div class="page">
+    <div class="page-title">Alertas activas</div>
+    <div class="page-sub">3 situaciones que necesitan atención</div>
+    <div class="section-title">Urgentes</div>
+    <div class="alert-row"><div class="alert-icon danger"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div class="alert-body-title">Amex Gold vence en 4 días</div><div class="alert-body-desc">$12,400 pendientes. Sin pago antes del 31 mayo generarás $620 en intereses.</div><div class="alert-date">Gmail · Detectado hoy</div></div></div>
+    <div class="section-title">Importantes</div>
+    <div class="alert-row"><div class="alert-icon warn"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div><div class="alert-body-title">Excediste tu presupuesto de Sheets en $3,450</div><div class="alert-body-desc">Definiste $20,000/mes en tu hoja. Llevas $23,450 gastados en mayo.</div><div class="alert-date">Sheets + Gmail · Detectado ayer</div></div></div>
+    <div class="alert-row"><div class="alert-icon warn"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><div class="alert-body-title">Saldo combinado en mínimo histórico</div><div class="alert-body-desc">Saldo libre: $23,740 — el más bajo en 6 meses. Promedio histórico: $31,200.</div><div class="alert-date">Gmail · Detectado hoy</div></div></div>
+    <div class="section-title">Informativas</div>
+    <div class="alert-row"><div class="alert-icon info"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div class="alert-body-title">3 meses pagando mínimo en Nu Crédito</div><div class="alert-body-desc">Generando $800/mes en intereses innecesarios. Ya pagaste $2,400 extra sin bajar el capital.</div><div class="alert-date">Gmail · 24 mayo</div></div></div>
+  </div>
+</div>
+
+<!-- BBVA -->
+<div id="view-bbva" class="view">
+  <div class="page">
+    <div class="account-header">
+      <div class="account-name">BBVA Débito</div>
+      <div class="account-number">**** **** **** 4821 <span class="src-icon src-gmail">Gmail</span></div>
+      <div class="account-balance good">$23,740.50</div>
+      <div class="account-meta">
+        <div class="account-meta-item">Actualizado<span>Hoy 8:32 am</span></div>
+        <div class="account-meta-item">Corte<span>31 mayo 2025</span></div>
+        <div class="account-meta-item">Movimientos<span>34 este mes</span></div>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Monto</th></tr></thead>
+      <tbody>
+        <tr><td>25 may</td><td>OXXO San Pedro</td><td class="cat-pill"><span>Supermercado</span></td><td class="amount neg">-$180</td></tr>
+        <tr><td>23 may</td><td>PEMEX Constitución</td><td class="cat-pill"><span>Gasolina</span></td><td class="amount neg">-$850</td></tr>
+        <tr><td>20 may</td><td>Depósito nómina</td><td class="cat-pill"><span>Ingreso</span></td><td class="amount pos">+$18,640</td></tr>
+        <tr><td>15 may</td><td>Walmart Valle</td><td class="cat-pill"><span>Supermercado</span></td><td class="amount neg">-$1,480</td></tr>
+        <tr><td>12 may</td><td>PEMEX Garza Sada</td><td class="cat-pill"><span>Gasolina</span></td><td class="amount neg">-$760</td></tr>
+        <tr><td>8 may</td><td>YouTube Premium</td><td class="cat-pill"><span>Suscripción</span></td><td class="amount neg">-$119</td></tr>
+        <tr><td>1 may</td><td>Depósito nómina</td><td class="cat-pill"><span>Ingreso</span></td><td class="amount pos">+$18,640</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- AMEX -->
+<div id="view-amex" class="view">
+  <div class="page">
+    <div class="account-header">
+      <div class="account-name">American Express Gold</div>
+      <div class="account-number">**** **** **** 9034 <span class="src-icon src-gmail">Gmail</span></div>
+      <div class="account-balance danger">$12,400 por pagar</div>
+      <div class="account-meta">
+        <div class="account-meta-item">Fecha límite<span style="color:var(--danger)">31 mayo — 4 días</span></div>
+        <div class="account-meta-item">Límite<span>$40,000</span></div>
+        <div class="account-meta-item">Disponible<span>$27,600</span></div>
+      </div>
+    </div>
+    <div class="alert-bubble" style="margin-bottom:14px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--danger);fill:none;stroke-width:2;flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span style="color:var(--danger)">Vence en 4 días. Pagar antes del 31 mayo evita $620 en mora.</span></div>
+    <table class="data-table">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Monto</th></tr></thead>
+      <tbody>
+        <tr><td>26 may</td><td>Uber Eats</td><td class="cat-pill"><span>Restaurantes</span></td><td class="amount neg">-$340</td></tr>
+        <tr><td>22 may</td><td>Walmart Monterrey</td><td class="cat-pill"><span>Supermercado</span></td><td class="amount neg">-$1,240</td></tr>
+        <tr><td>17 may</td><td>Liverpool San Agustín</td><td class="cat-pill"><span>Ropa</span></td><td class="amount neg">-$1,900</td></tr>
+        <tr><td>14 may</td><td>Cinépolis VIP</td><td class="cat-pill"><span>Entretenimiento</span></td><td class="amount neg">-$480</td></tr>
+        <tr><td>10 may</td><td>Restaurante Lampuga</td><td class="cat-pill"><span>Restaurantes</span></td><td class="amount neg">-$1,200</td></tr>
+        <tr><td>7 may</td><td>ChatGPT Plus</td><td class="cat-pill"><span>Suscripción</span></td><td class="amount neg">-$220</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- NU -->
+<div id="view-nu" class="view">
+  <div class="page">
+    <div class="account-header">
+      <div class="account-name">Nu Crédito</div>
+      <div class="account-number">**** **** **** 2210 <span class="src-icon src-gmail">Gmail</span></div>
+      <div class="account-balance danger">$6,240 adeudo</div>
+      <div class="account-meta">
+        <div class="account-meta-item">Corte<span>20 mayo</span></div>
+        <div class="account-meta-item">Pago mínimo<span style="color:var(--warn)">$460</span></div>
+        <div class="account-meta-item">Pago total<span style="color:var(--accent2)">$6,240</span></div>
+      </div>
+    </div>
+    <div class="alert-bubble" style="margin-bottom:14px"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:var(--warn);fill:none;stroke-width:2;flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>3 meses pagando mínimo = $800/mes en intereses. Pagar el total ahorra $9,600 al año.</div>
+    <table class="data-table">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Monto</th></tr></thead>
+      <tbody>
+        <tr><td>24 may</td><td>Netflix</td><td class="cat-pill"><span>Suscripción</span></td><td class="amount neg">-$179</td></tr>
+        <tr><td>18 may</td><td>Spotify</td><td class="cat-pill"><span>Suscripción</span></td><td class="amount neg">-$99</td></tr>
+        <tr><td>15 may</td><td>Adobe Creative Cloud</td><td class="cat-pill"><span>Suscripción</span></td><td class="amount neg">-$289</td></tr>
+        <tr><td>12 may</td><td>Uber</td><td class="cat-pill"><span>Transporte</span></td><td class="amount neg">-$340</td></tr>
+        <tr><td>2 may</td><td>Pago mínimo recibido</td><td class="cat-pill"><span>Pago</span></td><td class="amount pos">+$460</td></tr>
+        <tr><td>1 may</td><td>Intereses generados</td><td class="cat-pill"><span>Interés</span></td><td class="amount neg">-$798</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CONEXIONES
+═══════════════════════════════════════════ -->
+<div id="view-conexiones" class="view">
+  <div class="conn-page">
+    <div class="page-title">Conexiones</div>
+    <div class="page-sub">Conecta tus fuentes de datos. La app carga siempre — esto es opcional y puedes cambiarlo cuando quieras.</div>
+
+    <div class="conn-grid">
+
+      <!-- ── GMAIL CARD ── -->
+      <div class="conn-card" id="gmail-card">
+        <div class="conn-card-header">
+          <div class="conn-service-icon gmail">✉</div>
+          <div style="flex:1">
+            <div class="conn-service-name">Gmail</div>
+            <div class="conn-service-status" id="gmail-status-text">No conectado</div>
+          </div>
+          <div id="gmail-header-badge"></div>
+        </div>
+
+        <!-- Estado: DESCONECTADO -->
+        <div class="conn-card-body" id="gmail-disconnected">
+          <div class="conn-scopes">
+            <strong>Qué leerá Neto:</strong><br>
+            Correos de BBVA, Amex, Nu, Banamex, HSBC y otros bancos mexicanos. Detecta estados de cuenta, notificaciones de cargos y resúmenes mensuales. Identifica montos, fechas, comercios y categorías automáticamente.
+          </div>
+          <div class="conn-actions">
+            <button class="btn-google" onclick="openOAuth('gmail')">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              Conectar Gmail con Google
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Scope: gmail.readonly — solo lectura, nunca escribimos en tu correo</div>
+        </div>
+
+        <!-- Estado: CONECTADO -->
+        <div class="conn-card-body" id="gmail-connected" style="display:none">
+          <div class="conn-meta-grid">
+            <div class="conn-meta-block"><div class="conn-meta-val" id="gmail-meta-emails">34</div><div class="conn-meta-lbl">Correos procesados</div></div>
+            <div class="conn-meta-block"><div class="conn-meta-val" id="gmail-meta-sync">Hoy 8:32 am</div><div class="conn-meta-lbl">Última sincronización</div></div>
+            <div class="conn-meta-block"><div class="conn-meta-val">3</div><div class="conn-meta-lbl">Bancos detectados</div></div>
+          </div>
+          <div class="conn-actions">
+            <button class="btn-sm primary" onclick="syncGmail()">↺ Sincronizar ahora</button>
+            <button class="btn-sm danger-btn" onclick="disconnectGmail()">Desconectar Gmail</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Cuenta: carlos.gonzalez@gmail.com · Scope: gmail.readonly · <a style="color:var(--accent2);cursor:pointer" onclick="alert('Ir a myaccount.google.com/permissions')">Revocar en Google</a></div>
+        </div>
+      </div>
+
+      <!-- ── SHEETS CARD ── -->
+      <div class="conn-card" id="sheets-card">
+        <div class="conn-card-header">
+          <div class="conn-service-icon sheets">⊞</div>
+          <div style="flex:1">
+            <div class="conn-service-name">Google Sheets</div>
+            <div class="conn-service-status" id="sheets-status-text">No conectado</div>
+          </div>
+          <div id="sheets-header-badge"></div>
+        </div>
+
+        <!-- Estado: DESCONECTADO -->
+        <div class="conn-card-body" id="sheets-disconnected">
+          <div class="conn-scopes">
+            <strong>Qué leerá Neto:</strong><br>
+            La hoja de cálculo que tú elijas — puede ser tu registro manual de gastos, presupuesto mensual, ingresos o cualquier tabla financiera. Neto lee esas filas y las incorpora al contexto del chat.
+          </div>
+          <div class="conn-actions">
+            <button class="btn-google" onclick="openOAuth('sheets')">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              Conectar Sheets con Google
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Scope: spreadsheets.readonly — solo lectura, nunca modificamos tu hoja</div>
+        </div>
+
+        <!-- Estado: AUTH OK, falta ID -->
+        <div class="conn-card-body" id="sheets-auth-ok" style="display:none">
+          <div class="sheets-id-section">
+            <div class="sheets-id-label">Google autenticado. Ahora pega el ID de tu hoja o escribe el nombre:</div>
+            <div class="sheets-id-row">
+              <input type="text" id="sheets-id-input" placeholder="Ej: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+              <button class="btn-sm primary" onclick="connectSheet()">Importar</button>
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:6px">Encuentra el ID en la URL de tu hoja: docs.google.com/spreadsheets/d/<strong style="color:var(--text2)">ID_AQUÍ</strong>/edit</div>
+          </div>
+        </div>
+
+        <!-- Estado: CONECTADO -->
+        <div class="conn-card-body" id="sheets-connected" style="display:none">
+          <div class="conn-meta-grid">
+            <div class="conn-meta-block"><div class="conn-meta-val">248</div><div class="conn-meta-lbl">Filas procesadas</div></div>
+            <div class="conn-meta-block"><div class="conn-meta-val">Hoy 9:01 am</div><div class="conn-meta-lbl">Última sincronización</div></div>
+            <div class="conn-meta-block"><div class="conn-meta-val">5</div><div class="conn-meta-lbl">Hojas activas</div></div>
+          </div>
+          <div class="sheets-id-section">
+            <div class="sheets-id-label">Hoja conectada: <strong style="color:var(--accent2)" id="sheets-name-display">Presupuesto 2025</strong></div>
+            <div class="sheets-id-row">
+              <input type="text" id="sheets-id-change" placeholder="Pegar nuevo ID para cambiar hoja…">
+              <button class="btn-sm" onclick="changeSheet()">Cambiar</button>
+            </div>
+          </div>
+          <div class="conn-actions">
+            <button class="btn-sm primary" onclick="syncSheets()">↺ Sincronizar ahora</button>
+            <button class="btn-sm danger-btn" onclick="disconnectSheets()">Desconectar Sheets</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">Cuenta: carlos.gonzalez@gmail.com · Scope: spreadsheets.readonly · <a style="color:var(--accent2);cursor:pointer" onclick="alert('Ir a myaccount.google.com/permissions')">Revocar en Google</a></div>
+        </div>
+      </div>
+
+      <!-- PRIVACIDAD -->
+      <div class="privacy-card">
+        <strong>🔒 Solo lectura — siempre.</strong> Neto nunca escribe, modifica ni elimina nada en tu Gmail ni en tu Google Sheets. Los tokens OAuth están cifrados y guardados en Supabase asociados a tu sesión. Puedes revocar el acceso en cualquier momento desde esta pantalla o directamente desde <a>myaccount.google.com/permissions</a>. Usamos los scopes mínimos necesarios: <strong>gmail.readonly</strong> y <strong>spreadsheets.readonly</strong>.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MIS GASTOS -->
+<div id="view-gastos" class="view">
+  <div class="gastos-page">
+    <div class="page-title">Mis gastos</div>
+    <div class="page-sub">Compras agrupadas por categoría — detectadas automáticamente</div>
+
+    <!-- FILTROS -->
+    <div class="gastos-filters">
+      <button class="filter-btn active" onclick="setMes(this,'mayo')">Mayo 2025</button>
+      <button class="filter-btn" onclick="setMes(this,'abril')">Abril 2025</button>
+      <button class="filter-btn" onclick="setMes(this,'marzo')">Marzo 2025</button>
+      <button class="filter-btn" onclick="setMes(this,'todos')">Histórico</button>
+      <div style="width:1px;background:var(--border);margin:0 4px"></div>
+      <button class="filter-btn active" onclick="setCuenta(this,'todas')">Todas</button>
+      <button class="filter-btn" onclick="setCuenta(this,'bbva')">BBVA</button>
+      <button class="filter-btn" onclick="setCuenta(this,'amex')">Amex</button>
+      <button class="filter-btn" onclick="setCuenta(this,'nu')">Nu</button>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="gastos-summary">
+      <div class="gastos-total-card">
+        <div class="gastos-total-val danger" id="gt-total">$23,450</div>
+        <div class="gastos-total-lbl">Gasto total del mes</div>
+      </div>
+      <div class="gastos-total-card">
+        <div class="gastos-total-val" id="gt-txs">47</div>
+        <div class="gastos-total-lbl">Transacciones</div>
+      </div>
+      <div class="gastos-total-card">
+        <div class="gastos-total-val" id="gt-cats">7</div>
+        <div class="gastos-total-lbl">Categorías</div>
+      </div>
+    </div>
+
+    <!-- CATEGORÍAS -->
+    <div id="cats-container"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── ESTADO GLOBAL ──
+const state = { gmail: false, sheets: false, sheetsAuthOk: false };
+let oauthTarget = null;
+
+// ── NAV ──
+function showView(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (window.innerWidth <= 700) closeSidebar();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('hidden');
+}
+
+function closeSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.add('hidden');
+}
+
+function openSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.remove('hidden');
+}
+
+// ── TOPBAR STATUS ──
+function updateTopbar() {
+  const pillGmail = document.getElementById('pill-gmail');
+  const pillSheets = document.getElementById('pill-sheets');
+  const statusPill = document.getElementById('topbar-status');
+  const statusDot = document.getElementById('topbar-dot');
+  const statusText = document.getElementById('topbar-status-text');
+  const badge = document.getElementById('conn-badge');
+  const banner = document.getElementById('demo-banner');
+
+  pillGmail.style.background = state.gmail ? '#ea4335' : 'var(--text3)';
+  pillSheets.style.background = state.sheets ? '#34a853' : 'var(--text3)';
+
+  const count = (state.gmail ? 1 : 0) + (state.sheets ? 1 : 0);
+  badge.textContent = count + '/2';
+
+  if (state.gmail || state.sheets) {
+    statusPill.classList.add('live');
+    statusDot.classList.add('live');
+    statusText.textContent = 'Sincronizado';
+    banner.style.display = 'none';
+  } else {
+    statusPill.classList.remove('live');
+    statusDot.classList.remove('live');
+    statusText.textContent = 'Sin conexión';
+    banner.style.display = 'flex';
+  }
+}
+
+// ── OAUTH MODAL ──
+const gmailScopes = [
+  'Leer correos de tus bancos (BBVA, Amex, Nu…)',
+  'Detectar estados de cuenta y cargos',
+  'Identificar montos, fechas y comercios',
+];
+const sheetsScopes = [
+  'Leer la hoja de cálculo que tú elijas',
+  'Leer filas de gastos, presupuesto e ingresos',
+  'Incorporar datos al contexto del chat',
+];
+
+function openOAuth(target) {
+  oauthTarget = target;
+  const title = document.getElementById('oauth-title');
+  const scopesList = document.getElementById('oauth-scopes-list');
+  const scopes = target === 'gmail' ? gmailScopes : sheetsScopes;
+  const service = target === 'gmail' ? 'Gmail' : 'Google Sheets';
+
+  title.textContent = 'Neto quiere acceder a tu ' + service;
+  scopesList.innerHTML = scopes.map(s =>
+    `<div class="oauth-scope-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>${s}</div>`
+  ).join('');
+
+  document.getElementById('oauth-modal').classList.add('show');
+}
+
+function closeOAuth() {
+  document.getElementById('oauth-modal').classList.remove('show');
+  oauthTarget = null;
+}
+
+function authorizeOAuth() {
+  const target = oauthTarget;
+  closeOAuth();
+  if (target === 'gmail') {
+    setTimeout(connectGmail, 200);
+  } else if (target === 'sheets') {
+    setTimeout(showSheetsAuthOk, 200);
+  }
+}
+
+// ── GMAIL ──
+function connectGmail() {
+  state.gmail = true;
+  document.getElementById('gmail-card').classList.add('connected');
+  document.getElementById('gmail-status-text').textContent = 'Conectado — carlos.gonzalez@gmail.com';
+  document.getElementById('gmail-status-text').classList.add('live');
+  document.getElementById('gmail-disconnected').style.display = 'none';
+  document.getElementById('gmail-connected').style.display = 'flex';
+  document.getElementById('gmail-header-badge').innerHTML = '<span class="badge badge-green">Conectado</span>';
+  updateTopbar();
+  addChatMessage('Gmail conectado. Ya puedo leer tus estados de cuenta de BBVA, Amex y Nu en tiempo real. ¿Sobre qué quieres preguntar primero?', 'gmail');
+}
+
+function syncGmail() {
+  const el = document.getElementById('gmail-meta-sync');
+  el.textContent = 'Sincronizando…';
+  setTimeout(() => { el.textContent = now(); }, 1400);
+}
+
+function disconnectGmail() {
+  if (!confirm('¿Desconectar Gmail? Volverás a ver datos de ejemplo en el chat.')) return;
+  state.gmail = false;
+  document.getElementById('gmail-card').classList.remove('connected');
+  document.getElementById('gmail-status-text').textContent = 'No conectado';
+  document.getElementById('gmail-status-text').classList.remove('live');
+  document.getElementById('gmail-disconnected').style.display = 'flex';
+  document.getElementById('gmail-connected').style.display = 'none';
+  document.getElementById('gmail-header-badge').innerHTML = '';
+  updateTopbar();
+}
+
+// ── SHEETS ──
+function showSheetsAuthOk() {
+  state.sheetsAuthOk = true;
+  document.getElementById('sheets-disconnected').style.display = 'none';
+  document.getElementById('sheets-auth-ok').style.display = 'flex';
+  document.getElementById('sheets-status-text').textContent = 'Autenticado — elige una hoja';
+  document.getElementById('sheets-status-text').classList.add('live');
+}
+
+function connectSheet() {
+  const val = document.getElementById('sheets-id-input').value.trim();
+  if (!val) {
+    document.getElementById('sheets-id-input').style.borderColor = 'var(--danger)';
+    document.getElementById('sheets-id-input').placeholder = 'Pega el ID de tu hoja primero…';
+    setTimeout(() => {
+      document.getElementById('sheets-id-input').style.borderColor = '';
+      document.getElementById('sheets-id-input').placeholder = 'Ej: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms';
+    }, 2000);
+    return;
+  }
+  const name = val.length > 20 ? 'Hoja ' + val.substring(0, 10) + '…' : val;
+  state.sheets = true;
+  document.getElementById('sheets-card').classList.add('connected');
+  document.getElementById('sheets-status-text').textContent = 'Conectado — ' + name;
+  document.getElementById('sheets-auth-ok').style.display = 'none';
+  document.getElementById('sheets-connected').style.display = 'flex';
+  document.getElementById('sheets-name-display').textContent = name;
+  document.getElementById('sheets-header-badge').innerHTML = '<span class="badge badge-green">Conectado</span>';
+  updateTopbar();
+  addChatMessage('Sheets conectado — leí ' + name + ' con 248 filas. Ahora puedo comparar tu presupuesto contra tus gastos reales de Gmail.', 'sheets');
+}
+
+function changeSheet() {
+  const val = document.getElementById('sheets-id-change').value.trim();
+  if (!val) return;
+  const name = 'Hoja ' + val.substring(0, 8) + '…';
+  document.getElementById('sheets-name-display').textContent = name;
+  document.getElementById('sheets-id-change').value = '';
+  document.getElementById('sheets-status-text').textContent = 'Conectado — ' + name;
+}
+
+function syncSheets() {
+  const el = document.getElementById('sheets-status-text');
+  el.textContent = 'Sincronizando…';
+  setTimeout(() => { el.textContent = 'Conectado — ' + document.getElementById('sheets-name-display').textContent; }, 1200);
+}
+
+function disconnectSheets() {
+  if (!confirm('¿Desconectar Google Sheets?')) return;
+  state.sheets = false;
+  state.sheetsAuthOk = false;
+  document.getElementById('sheets-card').classList.remove('connected');
+  document.getElementById('sheets-status-text').textContent = 'No conectado';
+  document.getElementById('sheets-status-text').classList.remove('live');
+  document.getElementById('sheets-disconnected').style.display = 'flex';
+  document.getElementById('sheets-auth-ok').style.display = 'none';
+  document.getElementById('sheets-connected').style.display = 'none';
+  document.getElementById('sheets-header-badge').innerHTML = '';
+  updateTopbar();
+}
+
+// ── CHAT ──
+function addChatMessage(text, source) {
+  const msgs = document.getElementById('messages');
+  const srcColor = source === 'sheets' ? '#34a853' : '#ea4335';
+  const srcLabel = source === 'sheets' ? 'Sheets' : 'Gmail';
+  const div = document.createElement('div');
+  div.className = 'msg';
+  const tag = document.createElement('div');
+  tag.className = 'source-tag';
+  tag.innerHTML = `<span class="stdot" style="background:${srcColor}"></span>${srcLabel} conectado`;
+  const textNode = document.createTextNode(text);
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble ai';
+  bubble.appendChild(tag);
+  bubble.appendChild(textNode);
+  const timeEl = document.createElement('div');
+  timeEl.className = 'msg-time';
+  timeEl.textContent = now();
+  const content = document.createElement('div');
+  content.className = 'msg-content';
+  content.appendChild(bubble);
+  content.appendChild(timeEl);
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar ai';
+  avatar.textContent = 'C';
+  div.appendChild(avatar);
+  div.appendChild(content);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+const responses = {
+  '¿En qué categoría gasté más este mes?': {
+    src:'Gmail', text:'En mayo, tus categorías más altas:',
+    bars:[
+      {label:'Restaurantes',val:'$6,240',pct:100,cls:'danger'},
+      {label:'Supermercado',val:'$4,180',pct:67,cls:'warn'},
+      {label:'Gasolina',val:'$3,100',pct:50,cls:''},
+      {label:'Entretenimiento',val:'$2,800',pct:45,cls:'info'},
+      {label:'Ropa',val:'$1,900',pct:30,cls:''},
+    ],
+    chips:['¿Cómo bajo mi gasto en restaurantes?','¿Cómo voy vs mi presupuesto?']
+  },
+  '¿Cuánto pago de intereses al año?': {
+    src:'Gmail', text:'A tu ritmo actual de pago mínimo en Amex y Nu:',
+    cards:[
+      {val:'$14,880',lbl:'Intereses este año',cls:'danger'},
+      {val:'38 meses',lbl:'Para liquidar deuda',cls:'warn'},
+      {val:'$1,240',lbl:'Interés promedio/mes',cls:''},
+      {val:'56%',lbl:'Tasa real efectiva',cls:'danger'},
+    ],
+    alert:'Si subes tu pago a $4,000/mes en Amex, liquidas en 9 meses y ahorras $8,400.',
+    chips:['¿Cómo liquido más rápido?']
+  },
+  '¿Cuáles son mis suscripciones?': {
+    src:'Gmail', text:'7 suscripciones detectadas en tus correos:',
+    bars:[
+      {label:'Adobe CC',val:'$289/mes',pct:100,cls:'warn'},
+      {label:'ChatGPT Plus',val:'$220/mes',pct:76,cls:'warn'},
+      {label:'Netflix',val:'$179/mes',pct:62,cls:''},
+      {label:'HBO Max',val:'$159/mes',pct:55,cls:''},
+      {label:'YouTube',val:'$119/mes',pct:41,cls:''},
+      {label:'Spotify',val:'$99/mes',pct:34,cls:''},
+      {label:'iCloud',val:'$29/mes',pct:10,cls:''},
+    ],
+    alert:'Total: $1,124/mes · $13,488/año. Adobe + ChatGPT = 45% del gasto.',
+    chips:['¿Cuáles puedo cancelar?']
+  },
+  '¿Cómo voy vs mi presupuesto?': {
+    src:'Gmail + Sheets', text:'Comparando gasto real (Gmail) vs presupuesto (Sheets):',
+    cards:[
+      {val:'$20,000',lbl:'Presupuesto Sheets',cls:''},
+      {val:'$23,450',lbl:'Gastado real Gmail',cls:'danger'},
+      {val:'+$3,450',lbl:'Excedido este mes',cls:'danger'},
+      {val:'17%',lbl:'Sobre presupuesto',cls:'warn'},
+    ],
+    alert:'Mayor exceso: Restaurantes (+$2,240 sobre tu presupuesto de $4,000 para esa categoría).',
+    chips:['¿Cómo bajo mi gasto en restaurantes?']
+  },
+  '¿Cómo liquido más rápido?': {
+    src:'Gmail', text:'Estrategia avalancha para liquidar tu deuda más rápido:',
+    bars:[
+      {label:'Nu — 56% anual',val:'$6,240',pct:100,cls:'danger'},
+      {label:'Amex — 42% anual',val:'$12,400',pct:80,cls:'warn'},
+    ],
+    alert:'Paga mínimos en Amex y concentra todo el excedente en Nu primero (tasa más alta). Al liquidarlo, mueve ese pago completo a Amex. Ahorras $4,200 vs pagar proporcionalmente.',
+    chips:['¿Cuánto pago de intereses al año?','¿Cómo voy vs mi presupuesto?']
+  },
+  '¿Cuáles puedo cancelar?': {
+    src:'Gmail', text:'Suscripciones con mayor potencial de cancelación:',
+    bars:[
+      {label:'Adobe CC',val:'$289/mes',pct:100,cls:'danger'},
+      {label:'HBO Max',val:'$159/mes',pct:55,cls:'warn'},
+      {label:'YouTube Premium',val:'$119/mes',pct:41,cls:''},
+    ],
+    alert:'Si ya usas ChatGPT Plus para diseño, Adobe CC es redundante. HBO Max tiene menos contenido original que Netflix. Cancelar ambas = $448/mes ahorrados = $5,376 al año.',
+    chips:['¿Cuáles son mis suscripciones?','¿Cómo voy vs mi presupuesto?']
+  },
+  'Ver alertas activas': {
+    src:'Gmail + Sheets', text:'Tienes 3 alertas activas que necesitan atención:',
+    cards:[
+      {val:'4 días',lbl:'Amex vence',cls:'danger'},
+      {val:'+$3,450',lbl:'Excedido presupuesto',cls:'warn'},
+      {val:'3 meses',lbl:'Pagando mínimo Nu',cls:'warn'},
+    ],
+    alert:'Urgente: paga los $12,400 de Amex antes del 31 de mayo para evitar $620 en mora. Es tu acción más importante hoy.',
+    chips:['¿Cómo liquido más rápido?','¿Cómo voy vs mi presupuesto?']
+  },
+  '¿Cómo bajo mi gasto en restaurantes?': {
+    src:'Gmail', text:'Basado en tu historial, 3 cambios con mayor impacto:',
+    bars:[
+      {label:'Uber Eats / DiDi',val:'$2,400',pct:100,cls:'danger'},
+      {label:'Restaurantes noche',val:'$1,800',pct:75,cls:'warn'},
+      {label:'Café / snacks',val:'$840',pct:35,cls:''},
+    ],
+    alert:'Cocinar en casa 3 días más por semana y eliminar delivery podría ahorrarte ~$2,000/mes.',
+    chips:['¿Cómo voy vs mi presupuesto?']
+  },
+  '_default': {
+    src:'Gmail + Sheets', text:'Revisé tus fuentes. Resumen rápido:',
+    cards:[
+      {val:'$42,380',lbl:'Saldo combinado',cls:''},
+      {val:'$18,640',lbl:'Deuda activa',cls:'danger'},
+    ],
+    chips:['¿En qué categoría gasté más este mes?','¿Cómo voy vs mi presupuesto?','Ver alertas activas']
+  }
+};
+
+function askQ(q) {
+  if (isSending) return;
+  document.getElementById('chat-input').value = q;
+  sendMsg();
+}
+
+let isSending = false;
+
+function sendMsg() {
+  if (isSending) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  isSending = true;
+  input.value = '';
+  const msgs = document.getElementById('messages');
+
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg user';
+  userDiv.innerHTML = `<div class="msg-avatar user">CG</div><div class="msg-content"><div class="bubble user">${esc(text)}</div><div class="msg-time">${now()}</div></div>`;
+  msgs.appendChild(userDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg';
+  typingDiv.innerHTML = `<div class="msg-avatar ai">C</div><div class="msg-content"><div class="bubble ai"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  msgs.appendChild(typingDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    msgs.removeChild(typingDiv);
+    const r = responses[text] || responses['_default'];
+    const srcColor = (r.src && r.src.includes('Sheets')) ? '#34a853' : '#ea4335';
+    let inner = `<div class="source-tag"><span class="stdot" style="background:${srcColor}"></span>Leído de ${r.src||'Gmail'}</div>`;
+    inner += `<p style="margin-bottom:7px">${r.text}</p>`;
+    if (r.cards) {
+      inner += `<div class="insight-grid">`;
+      r.cards.forEach(c => { inner += `<div class="insight-card"><div class="insight-val ${c.cls}">${c.val}</div><div class="insight-label">${c.lbl}</div></div>`; });
+      inner += `</div>`;
+    }
+    if (r.bars) {
+      inner += `<div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">`;
+      r.bars.forEach(b => { inner += `<div class="bar-row"><span class="bar-label">${b.label}</span><div class="bar-track"><div class="bar-fill ${b.cls||''}" style="width:${b.pct}%"></div></div><span class="bar-val">${b.val}</span></div>`; });
+      inner += `</div>`;
+    }
+    if (r.alert) {
+      inner += `<div class="alert-bubble"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--warn);fill:none;stroke-width:2;flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${r.alert}</div>`;
+    }
+    if (r.chips) {
+      inner += `<div class="chip-row">`;
+      r.chips.forEach(c => { inner += `<span class="chip" onclick="askQ('${c.replace(/'/g,"\\'")}')">${c}</span>`; });
+      inner += `</div>`;
+    }
+    const aiDiv = document.createElement('div');
+    aiDiv.className = 'msg';
+    aiDiv.innerHTML = `<div class="msg-avatar ai">C</div><div class="msg-content"><div class="bubble ai">${inner}</div><div class="msg-source">Fuente: <span>${r.src||'Gmail'}</span></div><div class="msg-time">${now()}</div></div>`;
+    msgs.appendChild(aiDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+    isSending = false;
+  }, 1100);
+}
+
+// ── MIS GASTOS ──
+const categoryRules = {
+  'Restaurantes y delivery': {
+    emoji:'🍽️', color:'#f56666',
+    keywords:['uber eats','didi food','rappi','restaurante','taco','sushi','pizza','burger','comida','food','cafetería','café','starbucks','domino','mc donalds','mcdonalds','kfc','subway','lampuga']
+  },
+  'Supermercado': {
+    emoji:'🛒', color:'#f5c166',
+    keywords:['walmart','soriana','chedraui','heb','costco','oxxo','seven','7-eleven','superama','la comer','bodega aurrera','aurrera','mercado','grocery']
+  },
+  'Gasolina': {
+    emoji:'⛽', color:'#66c4f5',
+    keywords:['pemex','bp','shell','total','gasolinera','combustible','gas station','repsol']
+  },
+  'Suscripciones': {
+    emoji:'📱', color:'#b8f566',
+    keywords:['netflix','spotify','hbo','youtube','apple','icloud','adobe','chatgpt','openai','amazon prime','disney','paramount','crunchyroll','xbox','playstation','nintendo']
+  },
+  'Transporte': {
+    emoji:'🚗', color:'#7ed957',
+    keywords:['uber','didi','cabify','lyft','indriver','taxi','autobus','metro','ecobici','parking','estacionamiento','caseta','peaje','valet']
+  },
+  'Ropa y moda': {
+    emoji:'👔', color:'#afa9ec',
+    keywords:['liverpool','palacio','zara','h&m','mango','nike','adidas','shein','fashion','ropa','forever 21','pull&bear','bershka']
+  },
+  'Entretenimiento': {
+    emoji:'🎬', color:'#f5c166',
+    keywords:['cinépolis','cinemex','cine','teatro','concierto','evento','ticketmaster','boletia','fun','parque','museo']
+  },
+  'Salud': {
+    emoji:'💊', color:'#66c4f5',
+    keywords:['farmacia','farmacias guadalajara','benavides','doctor','médico','hospital','clínica','dental','gym','gimnasio','smartfit','sport city']
+  },
+  'Ingreso': {
+    emoji:'💰', color:'#b8f566',
+    keywords:['depósito','nómina','transferencia recibida','ingreso','salary']
+  },
+};
+
+const allTransactions = {
+  mayo: [
+    {id:1, name:'Uber Eats',          date:'26 may', amount:-340,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:2, name:'OXXO San Pedro',     date:'25 may', amount:-180,  account:'bbva', cat:'Supermercado'},
+    {id:3, name:'Netflix',            date:'24 may', amount:-179,  account:'nu',   cat:'Suscripciones'},
+    {id:4, name:'PEMEX Constitución', date:'23 may', amount:-850,  account:'bbva', cat:'Gasolina'},
+    {id:5, name:'Walmart Monterrey',  date:'22 may', amount:-1240, account:'amex', cat:'Supermercado'},
+    {id:6, name:'Depósito nómina',    date:'20 may', amount:18640, account:'bbva', cat:'Ingreso'},
+    {id:7, name:'DiDi Food',          date:'19 may', amount:-290,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:8, name:'Adobe CC',           date:'15 may', amount:-289,  account:'nu',   cat:'Suscripciones'},
+    {id:9, name:'Liverpool San Agustín',date:'17 may',amount:-1900,account:'amex', cat:'Ropa y moda'},
+    {id:10,name:'Cinépolis VIP',       date:'14 may', amount:-480,  account:'amex', cat:'Entretenimiento'},
+    {id:11,name:'Restaurante Lampuga', date:'10 may', amount:-1200, account:'amex', cat:'Restaurantes y delivery'},
+    {id:12,name:'ChatGPT Plus',        date:'7 may',  amount:-220,  account:'amex', cat:'Suscripciones'},
+    {id:13,name:'HBO Max',             date:'3 may',  amount:-159,  account:'amex', cat:'Suscripciones'},
+    {id:14,name:'Uber',                date:'12 may', amount:-340,  account:'nu',   cat:'Transporte'},
+    {id:15,name:'Spotify',            date:'5 may',  amount:-99,   account:'nu',   cat:'Suscripciones'},
+    {id:16,name:'iCloud 200GB',        date:'9 may',  amount:-29,   account:'bbva', cat:'Suscripciones'},
+    {id:17,name:'PEMEX Garza Sada',    date:'12 may', amount:-760,  account:'bbva', cat:'Gasolina'},
+    {id:18,name:'Starbucks Santa Fe',  date:'8 may',  amount:-210,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:19,name:'YouTube Premium',     date:'8 may',  amount:-119,  account:'bbva', cat:'Suscripciones'},
+    {id:20,name:'SmartFit San Pedro',  date:'1 may',  amount:-499,  account:'bbva', cat:'Salud'},
+    {id:21,name:'Depósito nómina',     date:'1 may',  amount:18640, account:'bbva', cat:'Ingreso'},
+    {id:22,name:'Farmacias Guadalajara',date:'6 may', amount:-340,  account:'bbva', cat:'Salud'},
+    {id:23,name:'Taxi aeropuerto',     date:'3 may',  amount:-280,  account:'amex', cat:'Transporte'},
+    {id:24,name:'Taco Inn Obispado',   date:'16 may', amount:-180,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:25,name:'Soriana Cumbres',     date:'11 may', amount:-890,  account:'bbva', cat:'Supermercado'},
+  ],
+  abril: [
+    {id:30,name:'Uber Eats',          date:'28 abr', amount:-310,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:31,name:'Walmart Valle',       date:'25 abr', amount:-1100, account:'bbva', cat:'Supermercado'},
+    {id:32,name:'Netflix',            date:'24 abr', amount:-179,  account:'nu',   cat:'Suscripciones'},
+    {id:33,name:'PEMEX Constitución', date:'20 abr', amount:-740,  account:'bbva', cat:'Gasolina'},
+    {id:34,name:'Uber',               date:'18 abr', amount:-290,  account:'nu',   cat:'Transporte'},
+    {id:35,name:'Depósito nómina',    date:'15 abr', amount:18640, account:'bbva', cat:'Ingreso'},
+    {id:36,name:'Spotify',            date:'5 abr',  amount:-99,   account:'nu',   cat:'Suscripciones'},
+    {id:37,name:'Restaurante El Tío',  date:'12 abr', amount:-860,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:38,name:'Depósito nómina',    date:'1 abr',  amount:18640, account:'bbva', cat:'Ingreso'},
+  ],
+  marzo: [
+    {id:40,name:'Uber Eats',          date:'30 mar', amount:-290,  account:'amex', cat:'Restaurantes y delivery'},
+    {id:41,name:'PEMEX',              date:'25 mar', amount:-820,  account:'bbva', cat:'Gasolina'},
+    {id:42,name:'Netflix',            date:'24 mar', amount:-179,  account:'nu',   cat:'Suscripciones'},
+    {id:43,name:'Walmart',            date:'20 mar', amount:-950,  account:'bbva', cat:'Supermercado'},
+    {id:44,name:'Depósito nómina',    date:'15 mar', amount:18640, account:'bbva', cat:'Ingreso'},
+    {id:45,name:'Cinépolis',          date:'10 mar', amount:-440,  account:'amex', cat:'Entretenimiento'},
+    {id:46,name:'Depósito nómina',    date:'1 mar',  amount:18640, account:'bbva', cat:'Ingreso'},
+  ],
+};
+
+// user corrections: {txId: newCategory}
+const userCorrections = {};
+let activeMes = 'mayo';
+let activeCuenta = 'todas';
+
+function categorize(tx) {
+  if (userCorrections[tx.id]) return userCorrections[tx.id];
+  return tx.cat;
+}
+
+function getFilteredTxs() {
+  const pool = activeMes === 'todos'
+    ? [...allTransactions.mayo, ...allTransactions.abril, ...allTransactions.marzo]
+    : (allTransactions[activeMes] || []);
+  return activeCuenta === 'todas' ? pool : pool.filter(t => t.account === activeCuenta);
+}
+
+function groupByCategory(txs) {
+  const groups = {};
+  txs.forEach(tx => {
+    const cat = categorize(tx);
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(tx);
+  });
+  return groups;
+}
+
+function accountColor(acc) {
+  return acc === 'bbva' ? '#4285f4' : acc === 'amex' ? '#ea4335' : '#9c5eed';
+}
+function accountLabel(acc) {
+  return acc === 'bbva' ? 'BBVA' : acc === 'amex' ? 'Amex' : 'Nu';
+}
+
+function fmtMXN(n) {
+  return (n < 0 ? '-' : '') + '$' + Math.abs(n).toLocaleString('es-MX');
+}
+
+function renderGastos() {
+  const txs = getFilteredTxs();
+  const spendTxs = txs.filter(t => t.amount < 0);
+  const totalGasto = spendTxs.reduce((s, t) => s + Math.abs(t.amount), 0);
+  const groups = groupByCategory(txs);
+
+  // Sort categories by total spend descending (exclude Ingreso from spend sort)
+  const sorted = Object.entries(groups).sort((a, b) => {
+    const sumA = a[1].filter(t => t.amount < 0).reduce((s,t) => s + Math.abs(t.amount), 0);
+    const sumB = b[1].filter(t => t.amount < 0).reduce((s,t) => s + Math.abs(t.amount), 0);
+    return sumB - sumA;
+  });
+
+  // Update summary
+  document.getElementById('gt-total').textContent = fmtMXN(-totalGasto);
+  document.getElementById('gt-txs').textContent = spendTxs.length;
+  document.getElementById('gt-cats').textContent = sorted.filter(([cat]) => cat !== 'Ingreso').length;
+
+  const container = document.getElementById('cats-container');
+  container.innerHTML = '';
+
+  sorted.forEach(([catName, catTxs], idx) => {
+    const rule = categoryRules[catName] || {emoji:'📦', color:'var(--text3)'};
+    const catSpend = catTxs.filter(t => t.amount < 0).reduce((s,t) => s + Math.abs(t.amount), 0);
+    const catIncome = catTxs.filter(t => t.amount > 0).reduce((s,t) => s + t.amount, 0);
+    const pct = totalGasto > 0 ? Math.round((catSpend / totalGasto) * 100) : 0;
+    const isIncome = catName === 'Ingreso';
+
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.id = 'cat-' + idx;
+
+    const txRows = catTxs.map(tx => {
+      const isPos = tx.amount > 0;
+      const otherCats = Object.keys(categoryRules).filter(c => c !== catName);
+      const opts = otherCats.map(c =>
+        `<button class="reassign-option" onclick="reassign(${tx.id},'${c}',${idx})">${categoryRules[c].emoji} ${c}</button>`
+      ).join('');
+      return `
+        <div class="cat-tx">
+          <span class="tx-account-dot" style="background:${accountColor(tx.account)}"></span>
+          <div class="cat-tx-info">
+            <div class="cat-tx-name">${tx.name}</div>
+            <div class="cat-tx-meta">
+              ${tx.date}
+              <span style="color:var(--border2)">·</span>
+              <span style="color:${accountColor(tx.account)}">${accountLabel(tx.account)}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <span class="cat-tx-amount ${isPos ? 'pos' : ''}">${isPos ? '+' : ''}${fmtMXN(tx.amount)}</span>
+            <div class="reassign-dropdown">
+              <button class="reassign-btn" onclick="toggleMenu(event,'menu-${tx.id}')">Mover ▾</button>
+              <div class="reassign-menu" id="menu-${tx.id}">${opts}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="cat-header" onclick="toggleCat(${idx})">
+        <div class="cat-emoji" style="border-color:${rule.color}22">${rule.emoji}</div>
+        <div class="cat-info">
+          <div class="cat-name">${catName}</div>
+          <div class="cat-bar-wrap">
+            <div class="cat-bar-track">
+              <div class="cat-bar-fill" style="width:${isIncome ? 0 : pct}%;background:${rule.color}"></div>
+            </div>
+            <span class="cat-bar-pct">${isIncome ? '' : pct + '%'}</span>
+          </div>
+        </div>
+        <div class="cat-right">
+          <span class="cat-amount" style="color:${isIncome ? 'var(--accent2)' : 'var(--text)'}">
+            ${isIncome ? '+' + fmtMXN(catIncome) : fmtMXN(-catSpend)}
+          </span>
+          <span class="cat-count">${catTxs.length} ${catTxs.length === 1 ? 'movimiento' : 'movimientos'}</span>
+        </div>
+        <svg class="cat-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="cat-transactions">${txRows}</div>`;
+
+    container.appendChild(card);
+  });
+}
+
+function toggleCat(idx) {
+  document.getElementById('cat-' + idx).classList.toggle('open');
+}
+
+function toggleMenu(e, menuId) {
+  e.stopPropagation();
+  document.querySelectorAll('.reassign-menu.show').forEach(m => {
+    if (m.id !== menuId) m.classList.remove('show');
+  });
+  document.getElementById(menuId).classList.toggle('show');
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.reassign-menu.show').forEach(m => m.classList.remove('show'));
+});
+
+function reassign(txId, newCat, cardIdx) {
+  userCorrections[txId] = newCat;
+  document.querySelectorAll('.reassign-menu.show').forEach(m => m.classList.remove('show'));
+  renderGastos();
+}
+
+function setMes(btn, mes) {
+  document.querySelectorAll('.gastos-filters .filter-btn').forEach((b, i) => {
+    if (i < 4) b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  activeMes = mes;
+  renderGastos();
+}
+
+function setCuenta(btn, cuenta) {
+  const allBtns = document.querySelectorAll('.gastos-filters .filter-btn');
+  [allBtns[4], allBtns[5], allBtns[6], allBtns[7]].forEach(b => b && b.classList.remove('active'));
+  btn.classList.add('active');
+  activeCuenta = cuenta;
+  renderGastos();
+}
+
+// Render on first load of this view
+const _origShowView = showView;
+showView = function(name, btn) {
+  _origShowView(name, btn);
+  if (name === 'gastos') renderGastos();
+};
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function goToConexiones() {
+  const btn = document.querySelector('[data-view=conexiones]');
+  showView('conexiones', btn);
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 700) {
+    document.getElementById('sidebar').classList.remove('hidden');
+  }
+});
+
+updateTopbar();
+if (window.innerWidth <= 700) {
+  document.getElementById('sidebar').classList.add('hidden');
+}
+</script>
+</body>
+</html>
