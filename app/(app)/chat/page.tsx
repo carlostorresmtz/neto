@@ -6,6 +6,7 @@ import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import type { GmailMessage } from "@/app/api/gmail/messages/route";
 import BudgetWidget from "@/components/BudgetWidget";
+import IllustrationChat from "@/components/IllustrationChat";
 
 // ── KPI stats data ──
 const STATS = [
@@ -68,9 +69,10 @@ function GmailErrorBanner({ errorCode }: { errorCode: string }) {
     <button
       onClick={() => signIn("google", { callbackUrl: "/chat" })}
       style={{
-        marginLeft: 6, padding: "1px 8px", fontSize: 11, fontWeight: 500,
-        background: "var(--danger)", color: "#fff", border: "none",
-        borderRadius: 4, cursor: "pointer", fontFamily: "inherit",
+        marginLeft: 8, padding: "3px 12px", fontSize: 11, fontWeight: 500,
+        background: "transparent", color: "var(--danger)",
+        border: "1px solid rgba(220,38,38,0.4)",
+        borderRadius: 8, cursor: "pointer", fontFamily: "inherit",
       }}
     >
       Reconectar
@@ -202,10 +204,10 @@ export default function ChatPage() {
       <div className="stats-bar">
         {STATS.map(s => (
           <div key={s.label} className="stat-block">
-            <div style={{ fontSize: 16, fontWeight: 500, color: s.color, marginBottom: 3, letterSpacing: "-0.01em" }}>
+            <div style={{ fontSize: 22, fontWeight: 600, color: s.color, marginBottom: 4, letterSpacing: "-0.025em" }}>
               {s.val}
             </div>
-            <div style={{ fontSize: 10, color: "var(--text3)", letterSpacing: "0.01em" }}>{s.label}</div>
+            <div style={{ fontSize: 11, color: "var(--text3)" }}>{s.label}</div>
           </div>
         ))}
       </div>
@@ -290,21 +292,12 @@ export default function ChatPage() {
             padding: "40px 24px", textAlign: "center",
             backgroundColor: "var(--bg)",
           }}>
-            {/* Logo */}
-            <div style={{
-              width: 48, height: 48,
-              background: "var(--accent)",
-              borderRadius: 12,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              marginBottom: 20,
-              boxShadow: "0 0 32px rgba(30,64,175,0.12)",
-            }}>
-              <svg width="22" height="22" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="1,11 4,6 7,9 11,3 15,5"/>
-              </svg>
+            {/* Ilustración thin-line (estilo landing) */}
+            <div style={{ marginBottom: 22 }}>
+              <IllustrationChat />
             </div>
 
-            <h2 style={{ fontSize: 24, fontWeight: 400, color: "var(--text)", marginBottom: 8, letterSpacing: "-0.02em" }}>
+            <h2 style={{ fontSize: 28, fontWeight: 600, color: "var(--text)", marginBottom: 8, letterSpacing: "-0.03em" }}>
               ¿En qué te ayudo hoy?
             </h2>
             <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 32, maxWidth: 360, lineHeight: 1.7 }}>
@@ -319,24 +312,19 @@ export default function ChatPage() {
                 <button
                   key={c.q}
                   onClick={() => askQuestion(c.q)}
+                  className="card-lift"
                   style={{
-                    background: "#F8FAFC",
-                    border: "1px solid #E2E8F0",
-                    borderRadius: 10,
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
                     padding: "20px",
                     textAlign: "left",
                     cursor: "pointer",
-                    transition: "border-color 0.2s, background 0.2s",
                     fontFamily: "inherit",
+                    display: "flex",
+                    flexDirection: "column",
+                    boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
                     animation: `cardFadeUp 0.4s ease ${i * 0.07}s both`,
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = "#1E40AF";
-                    e.currentTarget.style.background   = "#EFF6FF";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = "#E2E8F0";
-                    e.currentTarget.style.background   = "#F8FAFC";
                   }}
                 >
                   <div style={{ marginBottom: 12, lineHeight: 1 }}>{c.icon}</div>
