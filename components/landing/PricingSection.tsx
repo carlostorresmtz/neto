@@ -105,7 +105,7 @@ export default function PricingSection() {
             <ScrollReveal key={plan.name} delay={i * 100}>
               <div className="card-hover-line" style={{
                 background: plan.bg, border: plan.border,
-                borderRadius: 18, padding: "28px 24px",
+                borderRadius: 12, padding: "28px 24px",
                 display: "flex", flexDirection: "column", position: "relative",
               }}>
                 {plan.popular && (

@@ -19,7 +19,7 @@
   --warn: #D97706;
   --info: #0EA5E9;
   --success: #16A34A;
-  --radius: 14px;
+  --radius: 12px;
   --radius-sm: 8px;
   /* Lenguaje visual estilo Handle */
   --headline-muted: #94A3B8;   /* segunda línea de los headlines de dos tonos */
@@ -1322,7 +1322,7 @@ html { scroll-behavior: smooth; }
   position: relative;
   background: var(--illus-bg);
   border: 1px solid var(--hairline);
-  border-radius: 16px;
+  border-radius: 12px;
   background-image: radial-gradient(circle, rgba(15, 23, 42, 0.06) 1px, transparent 1px);
   background-size: 18px 18px;
   overflow: hidden;
@@ -1408,7 +1408,7 @@ html { scroll-behavior: smooth; }
   background: #1E40AF;
   color: #FFFFFF;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;
@@ -1424,7 +1424,7 @@ html { scroll-behavior: smooth; }
   background: transparent;
   color: #1E40AF;
   border: 1px solid #BFDBFE;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
   text-decoration: none;
@@ -1439,7 +1439,7 @@ html { scroll-behavior: smooth; }
   background: #FFFFFF;
   color: #1E40AF;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   font-family: inherit;
   font-weight: 500;

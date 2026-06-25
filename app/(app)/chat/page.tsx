@@ -294,7 +294,7 @@ export default function ChatPage() {
             <div style={{
               width: 48, height: 48,
               background: "var(--accent)",
-              borderRadius: 14,
+              borderRadius: 12,
               display: "flex", alignItems: "center", justifyContent: "center",
               marginBottom: 20,
               boxShadow: "0 0 32px rgba(30,64,175,0.12)",

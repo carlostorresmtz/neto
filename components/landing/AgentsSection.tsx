@@ -239,7 +239,7 @@ function AgentBlock({ agent, isLast }: { agent: AgentData; isLast: boolean }) {
   if (agent.cta) {
     return (
       <div style={{
-        border: "1.5px dashed #BFDBFE", borderRadius: 16, padding: "48px 40px",
+        border: "1.5px dashed #BFDBFE", borderRadius: 12, padding: "48px 40px",
         background: "#EFF6FF", textAlign: "center",
       }}>
         <div style={{ display: "inline-flex", ...bs, borderRadius: 100, padding: "4px 14px", fontSize: 11, fontWeight: 600, marginBottom: 24, letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -295,7 +295,7 @@ function AgentBlock({ agent, isLast }: { agent: AgentData; isLast: boolean }) {
       </div>
 
       {agent.cons && agent.pros && (
-        <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid #E2E8F0" }}>
+        <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E2E8F0" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
             <div style={{ padding: "14px 22px", borderBottom: "1px solid #E2E8F0", borderRight: "1px solid #E2E8F0", display: "flex", alignItems: "center" }}>
               <div style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600, color: "var(--danger)", letterSpacing: "0.06em", textTransform: "uppercase" }}>

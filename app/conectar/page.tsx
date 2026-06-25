@@ -29,7 +29,7 @@ export default function ConectarPage() {
         <div style={{
           width: 52, height: 52,
           background: "#1E40AF",
-          borderRadius: 14,
+          borderRadius: 12,
           display: "flex", alignItems: "center", justifyContent: "center",
           margin: "0 auto 28px",
           boxShadow: "0 0 40px rgba(30,64,175,0.15)",

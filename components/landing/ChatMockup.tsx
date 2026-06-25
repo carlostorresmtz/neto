@@ -129,7 +129,7 @@ export default function ChatMockup() {
         maxWidth: 560, margin: "0 auto", textAlign: "left",
         background: "#111312",
         border: "1px solid rgba(184,245,102,0.14)",
-        borderRadius: 18,
+        borderRadius: 12,
         boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 40px 100px rgba(0,0,0,0.55), 0 0 100px rgba(184,245,102,0.07)",
         overflow: "hidden",
         height: 340, minHeight: 340, maxHeight: 340,

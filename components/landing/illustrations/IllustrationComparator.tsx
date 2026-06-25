@@ -15,11 +15,11 @@ export default function IllustrationComparator() {
   return (
     <LineArt width={340} height={140} viewBox="0 0 340 140">
       {/* axis */}
-      <line className="draw-line" pathLength={1} x1="40" y1={base} x2="300" y2={base} stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: "0s", opacity: 0.4 }} />
-      <line className="draw-line" pathLength={1} x1="40" y1="24" x2="40" y2={base} stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: "0.05s", opacity: 0.4 }} />
+      <line className="draw-line" pathLength={1} x1="40" y1={base} x2="300" y2={base} stroke={STROKE} strokeWidth="1.5" strokeLinecap="round" style={{ transitionDelay: "0s", opacity: 0.4 }} />
+      <line className="draw-line" pathLength={1} x1="40" y1="24" x2="40" y2={base} stroke={STROKE} strokeWidth="1.5" strokeLinecap="round" style={{ transitionDelay: "0.05s", opacity: 0.4 }} />
 
       {/* dotted target line */}
-      <line className="draw-line" pathLength={1} x1="40" y1={base - 62} x2="296" y2={base - 62} stroke={STROKE} strokeWidth="1" strokeDasharray="0.05 0.05" style={{ transitionDelay: "0.2s", opacity: 0.3 }} />
+      <line className="draw-line" pathLength={1} x1="40" y1={base - 62} x2="296" y2={base - 62} stroke={STROKE} strokeWidth="1.5" strokeDasharray="0.05 0.05" style={{ transitionDelay: "0.2s", opacity: 0.3 }} />
 
       {/* bars (drawn vertically) */}
       {bars.map((b, i) => (

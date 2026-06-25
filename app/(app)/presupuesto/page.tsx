@@ -178,7 +178,7 @@ export default function PresupuestoPage() {
 
         {/* ── BARRA DE PROGRESO ── */}
         {configured && spent !== null && (
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 22px" }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12, flexWrap: "wrap", gap: 6 }}>
               <div>
                 <span style={{ fontSize: 22, fontWeight: 600, color: "var(--text)", letterSpacing: "-0.02em" }}>{formatMXN(spent)}</span>
@@ -228,7 +228,7 @@ export default function PresupuestoPage() {
         )}
 
         {/* ── ENTRADA DE PRESUPUESTO ── */}
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 22px" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>Tu presupuesto</div>
 
           <label style={{ display: "block", fontSize: 13, color: "var(--text2)", marginBottom: 6 }}>Presupuesto mensual (MXN)</label>
@@ -241,7 +241,7 @@ export default function PresupuestoPage() {
               placeholder="20,000"
               style={{
                 width: "100%", padding: "10px 12px 10px 24px", fontSize: 14,
-                background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 10,
+                background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 12,
                 color: "var(--text)", fontFamily: "inherit", outline: "none",
               }}
             />
@@ -261,7 +261,7 @@ export default function PresupuestoPage() {
                     placeholder="0"
                     style={{
                       width: "100%", padding: "7px 10px 7px 20px", fontSize: 13,
-                      background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 8,
+                      background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 12,
                       color: "var(--text)", fontFamily: "inherit", outline: "none",
                     }}
                   />
@@ -280,7 +280,7 @@ export default function PresupuestoPage() {
         </div>
 
         {/* ── ALERTAS CONFIGURABLES ── */}
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 22px" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Alertas</div>
           <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 16 }}>
             Elige en qué porcentajes quieres que Neto te avise.
@@ -302,7 +302,7 @@ export default function PresupuestoPage() {
         </div>
 
         {/* ── NOTIFICACIONES ── */}
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px 22px" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Notificaciones</div>
           <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 16, lineHeight: 1.6 }}>
             Recibirás una notificación push del navegador cuando alcances los umbrales que activaste.

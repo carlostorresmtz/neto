@@ -212,7 +212,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CREDIBILITY ── */}
-      <section style={{ padding: "0 24px 72px", textAlign: "center" }}>
+      <section style={{ padding: "0 24px 100px", textAlign: "center" }}>
         <p style={{ fontSize: 12, color: "var(--text3)", marginBottom: 20 }}>
           Construido en Monterrey, México
         </p>
@@ -287,7 +287,7 @@ export default function LandingPage() {
           />
         </div>
 
-        <Reveal style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #E2E8F0" }}>
+        <Reveal style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E2E8F0" }}>
           {/* Column headers */}
           <div className="land-ba-header" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
             <div style={{
@@ -371,7 +371,7 @@ export default function LandingPage() {
             <Reveal key={i} delay={i * 80} style={{ height: "100%" }}>
               <div className="card-hover-line card-lift" style={{
                 background: "var(--card)", border: "1px solid var(--border)",
-                borderRadius: 16, padding: "26px 22px", height: "100%",
+                borderRadius: 12, padding: "26px 22px", height: "100%",
               }}>
                 <div style={{ color: "var(--accent)", marginBottom: 16, opacity: 0.9 }}>{card.icon}</div>
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 8, letterSpacing: "-0.01em" }}>

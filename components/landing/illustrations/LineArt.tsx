@@ -35,6 +35,8 @@ export default function LineArt({
       height={height}
       viewBox={viewBox}
       fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden
       style={{ maxWidth: "100%", height: "auto", display: "block", ...style }}
     >

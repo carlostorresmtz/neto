@@ -10,7 +10,7 @@ function Section({ title, desc, children }: { title: string; desc?: string; chil
   return (
     <div style={{
       background: "var(--card)", border: "1px solid var(--border)",
-      borderRadius: 14, padding: "20px 22px",
+      borderRadius: 12, padding: "20px 22px",
     }}>
       <div style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: desc ? 2 : 14 }}>
         {title}
@@ -243,7 +243,7 @@ export default function ConfiguracionPage() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16,
+              background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12,
               padding: "26px 24px", maxWidth: 420, width: "100%",
               boxShadow: "0 8px 40px rgba(0,0,0,0.25)",
             }}

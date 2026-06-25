@@ -35,7 +35,7 @@ function FAQItem({ q, a, open, onToggle }: { q: string; a: string; open: boolean
     <div style={{
       background: "var(--card)",
       border: `1px solid ${open ? "#1E40AF" : "var(--border)"}`,
-      borderRadius: 14,
+      borderRadius: 12,
       overflow: "hidden",
       transition: "border-color 0.2s ease",
     }}>
@@ -107,7 +107,7 @@ export default function FAQ() {
   }
 
   return (
-    <section style={{ padding: "0 24px 96px", maxWidth: 720, margin: "0 auto" }}>
+    <section style={{ padding: "100px 24px", maxWidth: 720, margin: "0 auto" }}>
       <div style={{ marginBottom: 48 }}>
         <SectionHeading
           badge="Preguntas frecuentes"

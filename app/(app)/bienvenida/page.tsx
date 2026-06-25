@@ -135,7 +135,7 @@ export default function BienvenidaPage() {
             <>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: 16,
+                  width: 56, height: 56, borderRadius: 12,
                   background: "rgba(30,64,175,0.08)", border: "1px solid rgba(30,64,175,0.18)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
@@ -184,7 +184,7 @@ export default function BienvenidaPage() {
             <>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
                 <div style={{
-                  width: 56, height: 56, borderRadius: 16,
+                  width: 56, height: 56, borderRadius: 12,
                   background: "rgba(30,64,175,0.08)", border: "1px solid rgba(30,64,175,0.18)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>

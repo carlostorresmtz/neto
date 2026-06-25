@@ -215,7 +215,7 @@ function CierreModal({ onClose, gmailMessages }: { onClose: () => void; gmailMes
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
-      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 18, padding: "32px 28px", maxWidth: 560, width: "100%", maxHeight: "88vh", overflowY: "auto", animation: "fadeIn 0.2s ease" }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, padding: "32px 28px", maxWidth: 560, width: "100%", maxHeight: "88vh", overflowY: "auto", animation: "fadeIn 0.2s ease" }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
@@ -863,7 +863,7 @@ export default function AgentesPage() {
       <div style={{ padding: "24px 28px 48px", display: "flex", flexDirection: "column", gap: 16 }}>
 
         {/* ══ ALERTAS ══ */}
-        <div id="alertas" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
+        <div id="alertas" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
           <AgentCardHeader
             badge="En vivo" name="Alertas" accent="#b8f566"
             desc="Detecta situaciones urgentes en tus finanzas que requieren atención inmediata."
@@ -879,7 +879,7 @@ export default function AgentesPage() {
         </div>
 
         {/* ══ CIERRE ══ */}
-        <div id="cierre" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden", scrollMarginTop: 80 }}>
+        <div id="cierre" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.06)", overflow: "hidden", scrollMarginTop: 80 }}>
           <AgentCardHeader
             badge="Beta" name="Cierre" accent="#f5c166"
             desc="Genera tu resumen financiero mensual con categorías, KPIs y recomendaciones."
@@ -894,7 +894,7 @@ export default function AgentesPage() {
         </div>
 
         {/* ══ COMPARADOR ══ */}
-        <div id="comparador" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
+        <div id="comparador" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
           <AgentCardHeader
             badge="Beta" name="Comparador" accent="#f5c166"
             desc="Analiza tus patrones de gasto y calcula qué tarjeta de crédito mexicana te da más cashback."
@@ -910,7 +910,7 @@ export default function AgentesPage() {
         </div>
 
         {/* ══ DEDUCIBLES ══ */}
-        <div id="deducibles" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
+        <div id="deducibles" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
           <AgentCardHeader
             badge="Beta" name="Deducibles" accent="#f5c166"
             desc="Detecta gastos deducibles de ISR y genera el reporte fiscal para tu contador."
@@ -926,7 +926,7 @@ export default function AgentesPage() {
         </div>
 
         {/* ══ FRAUDE ══ */}
-        <div id="fraude" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
+        <div id="fraude" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
           <AgentCardHeader
             badge="Beta" name="Fraude" accent="#66c4f5"
             desc="Detecta cargos duplicados, montos inusuales y patrones sospechosos en tus movimientos."
@@ -942,7 +942,7 @@ export default function AgentesPage() {
         </div>
 
         {/* ══ DEPOSITOS ══ */}
-        <div id="depositos" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
+        <div id="depositos" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
           <AgentCardHeader
             badge="En vivo" name="Depositos" accent="#16a34a"
             desc="Detecta depósitos en efectivo y transferencias que recibiste."

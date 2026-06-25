@@ -66,7 +66,7 @@ export default function ProcessingSteps() {
       {/* Mock email card */}
       <div style={{
         background: "#F8FAFC", border: "1px solid #E2E8F0",
-        borderRadius: 16, padding: "16px 20px", marginBottom: 12,
+        borderRadius: 12, padding: "16px 20px", marginBottom: 12,
         display: "flex", alignItems: "center", gap: 14,
       }}>
         <div style={{
@@ -98,7 +98,7 @@ export default function ProcessingSteps() {
           <div key={step.num}>
             <div className="step-item" style={{
               background: "#F8FAFC", border: "1px solid #E2E8F0",
-              borderRadius: 14, padding: "16px 20px",
+              borderRadius: 12, padding: "16px 20px",
               display: "flex", alignItems: "center", gap: 16,
             }}>
               {/* Step number */}

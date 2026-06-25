@@ -84,7 +84,7 @@ export default function AppMockup() {
         maxWidth: 720, margin: "0 auto",
         background: "#0d0f0e",
         border: "1px solid rgba(184,245,102,0.12)",
-        borderRadius: 16,
+        borderRadius: 12,
         boxShadow: "0 0 0 1px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.6), 0 0 120px rgba(184,245,102,0.06)",
         overflow: "hidden",
         height: 440,

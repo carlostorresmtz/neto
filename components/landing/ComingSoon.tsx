@@ -61,7 +61,7 @@ export default function ComingSoon() {
   }
 
   return (
-    <section style={{ padding: "0 24px 96px", maxWidth: 960, margin: "0 auto" }}>
+    <section style={{ padding: "100px 24px", maxWidth: 960, margin: "0 auto" }}>
       <div style={{
         border: "1.5px dashed #FDE68A",
         borderRadius: 20,
@@ -104,7 +104,7 @@ export default function ComingSoon() {
           {FEATURES.map((f) => (
             <div key={f.title} style={{
               background: "var(--card)", border: "1px solid #E2E8F0",
-              borderRadius: 14, padding: "22px 20px",
+              borderRadius: 12, padding: "22px 20px",
               opacity: 0.85,
             }}>
               <div style={{ fontSize: 28, marginBottom: 12, lineHeight: 1 }}>{f.emoji}</div>

@@ -15,7 +15,7 @@ export default function IllustrationPainPoint3() {
   return (
     <LineArt width={140} height={92} viewBox="0 0 140 92">
       {/* baseline */}
-      <line className="draw-line" pathLength={1} x1="16" y1={base} x2="124" y2={base} stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: "0s", opacity: 0.4 }} />
+      <line className="draw-line" pathLength={1} x1="16" y1={base} x2="124" y2={base} stroke={STROKE} strokeWidth="1.5" strokeLinecap="round" style={{ transitionDelay: "0s", opacity: 0.4 }} />
       {bars.map((b, i) => (
         <line
           key={i}
