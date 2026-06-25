@@ -159,7 +159,6 @@ export default function ChatPage() {
 
   // Wrap submit to inject gmailContext from the latest ref value
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    console.log('[chat] gmailMessages being sent:', gmailRef.current?.length, gmailRef.current?.[0]);
     _handleSubmit(e, {
       body: gmailRef.current && gmailRef.current.length > 0
         ? { gmailContext: gmailRef.current }

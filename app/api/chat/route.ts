@@ -27,9 +27,6 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { messages, gmailContext } = body;
 
-  console.log("gmailContext length:", gmailContext?.length);
-  console.log("gmailContext[0]:", JSON.stringify(gmailContext?.[0])?.substring(0, 150));
-
   let systemPrompt: string;
 
   if (gmailContext && Array.isArray(gmailContext) && gmailContext.length > 0) {

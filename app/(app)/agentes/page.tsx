@@ -106,8 +106,8 @@ function LoadingDots() {
 function ErrorMsg() {
   return (
     <div style={{ textAlign: "center", padding: "24px 0" }}>
-      <p style={{ fontSize: 13, color: "var(--danger)", margin: "0 0 4px", fontWeight: 500 }}>No se pudo procesar la respuesta.</p>
-      <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>Intenta de nuevo.</p>
+      <p style={{ fontSize: 13, color: "var(--text2)", margin: "0 0 4px", fontWeight: 500 }}>No se pudo completar el análisis.</p>
+      <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>Espera unos segundos e intenta de nuevo.</p>
     </div>
   );
 }
