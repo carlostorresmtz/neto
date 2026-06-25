@@ -1272,11 +1272,6 @@ html { scroll-behavior: smooth; }
 .price-check { display: flex; align-items: flex-start; gap: 10; margin-bottom: 10; font-size: 13px; color: var(--text2); line-height: 1.5; }
 .price-check::before { content: "✓"; color: #16A34A; flex-shrink: 0; font-size: 13px; margin-top: 1px; }
 
-/* ── SCROLL REVEAL ── */
-@media (prefers-reduced-motion: reduce) {
-  .sr-item { opacity: 1 !important; transform: none !important; transition: none !important; }
-}
-
 /* ── SECTION DIVIDER ── */
 .land-sep {
   height: 1px;
@@ -1382,6 +1377,17 @@ html { scroll-behavior: smooth; }
     padding: 32px 0;
   }
   .land-col:first-child { border-top: none; padding-top: 8px; }
+}
+
+/* Tabla comparativa de Agentes (Sin Neto / Con Neto): 2 col → 1 col en móvil
+   (mismo breakpoint 640px que la tabla Antes/Después) */
+.agents-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) {
+  .agents-compare-grid { grid-template-columns: 1fr; }
+  .agents-compare-grid > *:first-child { border-right: none !important; }
 }
 
 /* Giant impact numbers */

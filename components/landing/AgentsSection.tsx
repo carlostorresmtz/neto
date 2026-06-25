@@ -296,7 +296,7 @@ function AgentBlock({ agent, isLast }: { agent: AgentData; isLast: boolean }) {
 
       {agent.cons && agent.pros && (
         <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid #E2E8F0" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+          <div className="agents-compare-grid">
             <div style={{ padding: "14px 22px", borderBottom: "1px solid #E2E8F0", borderRight: "1px solid #E2E8F0", display: "flex", alignItems: "center" }}>
               <div style={{ background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600, color: "var(--danger)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                 Sin Neto
@@ -309,7 +309,7 @@ function AgentBlock({ agent, isLast }: { agent: AgentData; isLast: boolean }) {
             </div>
           </div>
           {agent.cons.map((con, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", borderBottom: i < agent.cons!.length - 1 ? "1px solid #F1F5F9" : "none" }}>
+            <div key={i} className="agents-compare-grid" style={{ borderBottom: i < agent.cons!.length - 1 ? "1px solid #F1F5F9" : "none" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 22px", borderRight: "1px solid #F1F5F9" }}>
                 <span style={{ color: "var(--danger)", fontSize: 18, flexShrink: 0, lineHeight: 1 }}>✗</span>
                 <span style={{ fontSize: 13, color: "var(--text3)", lineHeight: 1.5 }}>{con}</span>
