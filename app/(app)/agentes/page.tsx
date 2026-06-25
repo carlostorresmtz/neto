@@ -62,6 +62,21 @@ interface FraudeAlerta {
 }
 interface FraudeResult { alertasFraude: FraudeAlerta[]; totalAlertas: number; resumen: string; }
 
+type IngresoTipo = "transferencia" | "efectivo" | "nomina" | "devolucion";
+interface Ingreso {
+  fecha: string;
+  monto: number;
+  origen: string;
+  tipo: IngresoTipo;
+  banco: string;
+}
+interface DepositosResult {
+  ingresos: Ingreso[];
+  totalIngresos: number;
+  ingresoMasReciente: { monto: number; origen: string; fecha: string } | null;
+  resumen?: string;
+}
+
 /* ── Helpers ── */
 function fmtMXN(n: number) {
   return "$" + Math.abs(n).toLocaleString("es-MX", { maximumFractionDigits: 0 });
@@ -524,6 +539,80 @@ function FraudeDisplay({ data }: { data: FraudeResult }) {
   );
 }
 
+/* ══ DEPOSITOS display ══ */
+const INGRESO_TIPO: Record<string, { label: string; color: string; border: string }> = {
+  transferencia: { label: "Transferencia", color: "#1E40AF", border: "#1E40AF" },
+  efectivo:      { label: "Efectivo",      color: "#16a34a", border: "#16a34a" },
+  nomina:        { label: "Nómina",        color: "#7c3aed", border: "#7c3aed" },
+  devolucion:    { label: "Devolución",    color: "#D97706", border: "#D97706" },
+};
+
+function DepositosDisplay({ data }: { data: DepositosResult }) {
+  const ingresos = data.ingresos ?? [];
+
+  if (ingresos.length === 0) {
+    return (
+      <div style={{ background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: 12, padding: "24px 20px", textAlign: "center", animation: "fadeIn 0.3s ease" }}>
+        <div style={{ fontSize: 40, marginBottom: 8 }}>💸</div>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", margin: "0 0 6px" }}>Sin ingresos detectados</p>
+        <p style={{ fontSize: 13, color: "var(--text3)", margin: 0, lineHeight: 1.5, maxWidth: 340, marginInline: "auto" }}>
+          {data.resumen ?? "No encontramos depósitos ni transferencias entrantes en este periodo."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, animation: "fadeIn 0.3s ease" }}>
+      {/* Total de ingresos */}
+      <div style={{ background: "rgba(22,163,74,0.05)", border: "1px solid rgba(22,163,74,0.2)", borderRadius: 12, padding: "18px 20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+        <p style={{ fontSize: 11, color: "#16a34a", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 4px" }}>Total de ingresos</p>
+        <p style={{ fontSize: 32, fontWeight: 600, color: "#16a34a", margin: 0, letterSpacing: "-0.02em" }}>+{fmtMXN(data.totalIngresos)}</p>
+        <p style={{ fontSize: 12, color: "var(--text3)", margin: "4px 0 0" }}>{ingresos.length} ingreso{ingresos.length !== 1 ? "s" : ""} detectado{ingresos.length !== 1 ? "s" : ""}{data.resumen ? ` · ${data.resumen}` : ""}</p>
+      </div>
+
+      {/* Ingreso más reciente destacado */}
+      {data.ingresoMasReciente && (
+        <div style={{ border: "2px solid rgba(22,163,74,0.25)", background: "rgba(22,163,74,0.03)", borderRadius: 12, padding: "16px 18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#16a34a", letterSpacing: "0.08em", textTransform: "uppercase" }}>Más reciente</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 24, fontWeight: 600, color: "#16a34a", letterSpacing: "-0.02em" }}>+{fmtMXN(data.ingresoMasReciente.monto)}</span>
+            <span style={{ fontSize: 14, color: "var(--text)", fontWeight: 500 }}>{data.ingresoMasReciente.origen}</span>
+            <span style={{ fontSize: 12, color: "var(--text3)" }}>{data.ingresoMasReciente.fecha}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Lista de ingresos */}
+      <div>
+        <SectionLabel>Todos los ingresos</SectionLabel>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {ingresos.map((ing, i) => {
+            const s = INGRESO_TIPO[ing.tipo] ?? INGRESO_TIPO.transferencia;
+            return (
+              <div key={i} style={{ borderLeft: `3px solid ${s.border}`, border: `1px solid ${s.border}22`, background: "var(--card)", borderRadius: "0 10px 10px 0", padding: "14px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: s.color, textTransform: "uppercase", letterSpacing: "0.07em", background: `${s.border}18`, borderRadius: 4, padding: "2px 7px" }}>{s.label}</span>
+                      <span style={{ fontSize: 11, color: "var(--text3)" }}>{ing.banco}</span>
+                    </div>
+                    <p style={{ fontSize: 14, color: "var(--text)", fontWeight: 500, margin: 0 }}>{ing.origen}</p>
+                    <p style={{ fontSize: 12, color: "var(--text3)", margin: "2px 0 0" }}>{ing.fecha}</p>
+                  </div>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: "#16a34a", flexShrink: 0, whiteSpace: "nowrap" }}>+{fmtMXN(ing.monto)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Badge styles ── */
 const BADGE_STYLE: Record<string, React.CSSProperties> = {
   "En vivo":      { background: "rgba(184,245,102,0.1)",  color: "#b8f566", border: "1px solid rgba(184,245,102,0.25)" },
@@ -532,7 +621,7 @@ const BADGE_STYLE: Record<string, React.CSSProperties> = {
 };
 
 /* ── AgentBody ── */
-function AgentBody({ state, agentName, children }: { state: AgentState; agentName: string; children?: React.ReactNode }) {
+function AgentBody({ state, agentName, loadingText, children }: { state: AgentState; agentName: string; loadingText?: string; children?: React.ReactNode }) {
   if (state === "idle") return (
     <div style={{ textAlign: "center", padding: "28px 0" }}>
       <p style={{ fontSize: 13, color: "var(--text3)", margin: 0 }}>Presiona el botón para analizar tus datos.</p>
@@ -543,7 +632,7 @@ function AgentBody({ state, agentName, children }: { state: AgentState; agentNam
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
         <div style={{ width: 32, height: 32, border: "2px solid var(--border)", borderTop: "2px solid var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
         <p style={{ fontSize: 14, color: "var(--text2)", margin: 0 }}>
-          {agentName} analizando tus finanzas…
+          {loadingText ?? `${agentName} analizando tus finanzas…`}
         </p>
       </div>
     </div>
@@ -629,6 +718,10 @@ export default function AgentesPage() {
   const [fraudeData,   setFraudeData]   = useState<FraudeResult | null>(null);
   const [fraudeTs,     setFraudeTs]     = useState<number | null>(null);
 
+  const [depState,     setDepState]     = useState<AgentState>("idle");
+  const [depData,      setDepData]      = useState<DepositosResult | null>(null);
+  const [depTs,        setDepTs]        = useState<number | null>(null);
+
   useEffect(() => {
     if (!session?.accessToken) return;
     fetch("/api/gmail/messages")
@@ -688,6 +781,15 @@ export default function AgentesPage() {
       if (!r.ok) throw new Error();
       setFraudeData(await r.json()); setFraudeState("done"); setFraudeTs(Date.now());
     } catch { setFraudeState("error"); }
+  }, [gmailBody]);
+
+  const runDepositos = useCallback(async () => {
+    setDepState("loading"); setDepData(null);
+    try {
+      const r = await fetch("/api/agentes/depositos", { method: "POST", headers: { "Content-Type": "application/json" }, body: gmailBody() });
+      if (!r.ok) throw new Error();
+      setDepData(await r.json()); setDepState("done"); setDepTs(Date.now());
+    } catch { setDepState("error"); }
   }, [gmailBody]);
 
   const isLoadingGmail = !!session?.accessToken && !gmailLoaded;
@@ -816,6 +918,22 @@ export default function AgentesPage() {
           <div style={{ padding: "20px 24px" }}>
             <AgentBody state={fraudeState} agentName="FraudeAgent">
               {fraudeData && <FraudeDisplay data={fraudeData} />}
+            </AgentBody>
+          </div>
+        </div>
+
+        {/* ══ DEPOSITOS ══ */}
+        <div id="depositos" style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", scrollMarginTop: 80 }}>
+          <AgentCardHeader
+            badge="En vivo" name="Depositos" accent="#16a34a"
+            desc="Detecta depósitos en efectivo y transferencias que recibiste."
+            state={depState} lastRunTs={depTs}
+            icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>}>
+            <RunButton state={depState} onRun={runDepositos} label="Buscar mis ingresos" color="#16a34a" />
+          </AgentCardHeader>
+          <div style={{ padding: "20px 24px" }}>
+            <AgentBody state={depState} agentName="DepositosAgent" loadingText="DepositosAgent buscando tus ingresos…">
+              {depData && <DepositosDisplay data={depData} />}
             </AgentBody>
           </div>
         </div>

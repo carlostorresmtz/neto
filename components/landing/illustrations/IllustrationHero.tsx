@@ -1,117 +1,67 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import LineArt, { STROKE, ACCENT } from "./LineArt";
 
-const W = 640;
-const PH = 260;
+/**
+ * Historia de Neto: correos bancarios dispersos (izquierda) que convergen
+ * en un hub central (Neto) y se transforman en un dashboard limpio (derecha).
+ * Líneas finas monocromáticas con un único acento azul. Se dibuja al entrar.
+ */
+const HUB = { x: 258, y: 100 };
 
-// Layer Y positions (bottom to top)
-const LAYERS = [
-  { y: 185, label: "Correos bancarios", color: "rgba(0,0,0,0.12)", accent: "rgba(59,130,246,0.6)"  },
-  { y: 110, label: "Neto AI",            color: "rgba(0,0,0,0.15)", accent: "rgba(30,64,175,0.7)"  },
-  { y:  35, label: "Tu dashboard",       color: "rgba(0,0,0,0.1)", accent: "rgba(217,119,6,0.6)"  },
+const EMAILS = [
+  { x: 26, y: 44 },
+  { x: 14, y: 92 },
+  { x: 30, y: 140 },
+  { x: 70, y: 68 },
+  { x: 64, y: 124 },
 ];
 
-const LW = 320;  // layer width
-const LH = 40;   // layer height (3D depth look)
-const LX = (W - LW) / 2;
-
 export default function IllustrationHero() {
-  const ref = useRef<SVGSVGElement>(null);
-  const [on, setOn] = useState(false);
-
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setOn(true); return; }
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setOn(true); obs.disconnect(); } },
-      { threshold: 0, rootMargin: "0px 0px -60px 0px" }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-
+  const s = { stroke: STROKE, strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
-    <svg ref={ref} width={W} height={PH} viewBox={`0 0 ${W} ${PH}`} fill="none"
-      style={{ maxWidth: "100%", height: "auto", display: "block", margin: "0 auto" }} aria-hidden>
+    <LineArt width={520} height={200} viewBox="0 0 520 200" style={{ margin: "0 auto" }}>
+      {/* convergence lines: each email → hub */}
+      {EMAILS.map((e, i) => (
+        <path
+          key={i}
+          className="draw-line"
+          pathLength={1}
+          d={`M ${e.x + 34} ${e.y + 9} Q ${(e.x + HUB.x) / 2} ${e.y + 9}, ${HUB.x - 22} ${HUB.y}`}
+          stroke={STROKE}
+          strokeWidth="1"
+          fill="none"
+          style={{ transitionDelay: `${0.5 + i * 0.08}s`, opacity: 0.35 }}
+        />
+      ))}
 
-      {/* Vertical connector lines between layers */}
-      {[0, 1].map(i => {
-        const topY = LAYERS[i + 1].y + LH;
-        const botY = LAYERS[i].y;
-        return (
-          <g key={i}>
-            <line x1={LX + 24} y1={topY} x2={LX + 24} y2={botY}
-              stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3 3"
-              strokeDashoffset={on ? 0 : 100} pathLength="100"
-              style={{ transition: `stroke-dashoffset 0.7s ease ${0.6 + i * 0.2}s` }}
-            />
-            <line x1={LX + LW - 24} y1={topY} x2={LX + LW - 24} y2={botY}
-              stroke="rgba(0,0,0,0.08)" strokeWidth="1" strokeDasharray="3 3"
-              strokeDashoffset={on ? 0 : 100} pathLength="100"
-              style={{ transition: `stroke-dashoffset 0.7s ease ${0.7 + i * 0.2}s` }}
-            />
-            {/* Arrow indicating flow up */}
-            <polyline
-              points={`${LX + LW / 2 - 5},${topY + 10} ${LX + LW / 2},${topY + 4} ${LX + LW / 2 + 5},${topY + 10}`}
-              stroke={LAYERS[i + 1].accent} strokeWidth="1.2" fill="none"
-              strokeLinecap="round" strokeLinejoin="round"
-              opacity={on ? 1 : 0}
-              style={{ transition: `opacity 0.4s ease ${0.9 + i * 0.2}s` }}
-            />
-          </g>
-        );
-      })}
-
-      {/* Layers (rendered bottom to top so top draws over bottom) */}
-      {LAYERS.map((layer, i) => (
-        <g key={i}
-          opacity={on ? 1 : 0}
-          style={{ transition: `opacity 0.55s ease ${i * 0.15}s` }}>
-
-          {/* Platform top face */}
-          <rect x={LX} y={layer.y} width={LW} height={LH} rx="8"
-            fill="rgba(0,0,0,0.02)"
-            stroke={layer.color}
-            strokeWidth="1.2"
-          />
-
-          {/* Accent left border */}
-          <line x1={LX} y1={layer.y + 8} x2={LX} y2={layer.y + LH - 8}
-            stroke={layer.accent} strokeWidth="2" strokeLinecap="round"
-          />
-
-          {/* Dots inside the platform */}
-          {[0, 1, 2, 3].map(j => (
-            <circle key={j}
-              cx={LX + 28 + j * ((LW - 56) / 3)} cy={layer.y + LH / 2}
-              r={j === 2 ? 3 : 2}
-              fill={j === 2 ? layer.accent : "rgba(0,0,0,0.1)"}
-            />
-          ))}
-          {/* Connecting line between dots */}
-          <line x1={LX + 28} y1={layer.y + LH / 2} x2={LX + LW - 28} y2={layer.y + LH / 2}
-            stroke="rgba(0,0,0,0.06)" strokeWidth="0.8" strokeDasharray="2 2"
-          />
-
-          {/* Label outside (right side) */}
-          <text x={LX + LW + 14} y={layer.y + LH / 2 + 4}
-            fill={layer.accent} fontSize="11" fontWeight="500" fontFamily="inherit">
-            {layer.label}
-          </text>
+      {/* scattered bank-email cards (wireframe) */}
+      {EMAILS.map((e, i) => (
+        <g key={i}>
+          <rect className="draw-line" pathLength={1} x={e.x} y={e.y} width="34" height="18" rx="3" {...s} style={{ transitionDelay: `${i * 0.1}s` }} />
+          <line className="draw-line" pathLength={1} x1={e.x + 5} y1={e.y + 7} x2={e.x + 29} y2={e.y + 7} stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: `${0.25 + i * 0.1}s`, opacity: 0.5 }} />
+          <line className="draw-line" pathLength={1} x1={e.x + 5} y1={e.y + 12} x2={e.x + 20} y2={e.y + 12} stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: `${0.32 + i * 0.1}s`, opacity: 0.5 }} />
         </g>
       ))}
 
-      {/* Floating accent nodes in the background */}
-      {[
-        { cx: LX - 40, cy: 110, r: 3, c: "rgba(30,64,175,0.3)" },
-        { cx: LX - 20, cy: 155, r: 2, c: "rgba(59,130,246,0.3)" },
-        { cx: LX + LW + 50, cy: 80, r: 2.5, c: "rgba(217,119,6,0.25)" },
-      ].map((dot, i) => (
-        <circle key={i} cx={dot.cx} cy={dot.cy} r={dot.r} fill={dot.c}
-          opacity={on ? 1 : 0}
-          style={{ transition: `opacity 0.5s ease ${0.8 + i * 0.1}s` }}
-        />
+      {/* central hub (Neto) */}
+      <circle className="draw-line" pathLength={1} cx={HUB.x} cy={HUB.y} r="22" stroke={ACCENT} strokeWidth="1.8" fill="none" style={{ transitionDelay: "1s" }} />
+      <polyline className="draw-line" pathLength={1} points={`${HUB.x - 9},${HUB.y + 1} ${HUB.x - 3},${HUB.y + 7} ${HUB.x + 9},${HUB.y - 7}`} stroke={ACCENT} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" style={{ transitionDelay: "1.25s" }} />
+
+      {/* hub → dashboard connector */}
+      <line className="draw-line" pathLength={1} x1={HUB.x + 22} y1={HUB.y} x2="346" y2={HUB.y} stroke={STROKE} strokeWidth="1.2" strokeDasharray="0.05 0.05" style={{ transitionDelay: "1.35s", opacity: 0.5 }} />
+
+      {/* dashboard panel (clean output) */}
+      <rect className="draw-line" pathLength={1} x="350" y="44" width="156" height="112" rx="10" {...s} style={{ transitionDelay: "1.45s" }} />
+      {/* panel header line */}
+      <line className="draw-line" pathLength={1} x1="366" y1="62" x2="430" y2="62" stroke={STROKE} strokeWidth="1.5" strokeLinecap="round" style={{ transitionDelay: "1.65s", opacity: 0.6 }} />
+      {/* rising line chart inside */}
+      <polyline className="draw-line" pathLength={1} points="366,120 392,104 416,110 442,86 470,78 490,70" stroke={ACCENT} strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ transitionDelay: "1.75s" }} />
+      {/* mini bars */}
+      {[372, 390, 408].map((x, i) => (
+        <line key={i} className="draw-line" pathLength={1} x1={x} y1="142" x2={x} y2={134 - i * 4} stroke={STROKE} strokeWidth="2" strokeLinecap="round" style={{ transitionDelay: `${2 + i * 0.08}s`, opacity: 0.5 }} />
       ))}
-    </svg>
+      <circle className="draw-fade" cx="490" cy="70" r="2.6" fill={ACCENT} style={{ transitionDelay: "2.3s" }} />
+    </LineArt>
   );
 }

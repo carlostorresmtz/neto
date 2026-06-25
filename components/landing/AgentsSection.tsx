@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import SectionHeading from "./SectionHeading";
 
 const BADGE_STYLES: Record<string, React.CSSProperties> = {
   "En vivo":      { background: "#DCFCE7",  color: "#16A34A", border: "1px solid #BBF7D0" },
@@ -303,7 +304,7 @@ function AgentBlock({ agent, isLast }: { agent: AgentData; isLast: boolean }) {
             </div>
             <div style={{ padding: "14px 22px", borderBottom: "1px solid #E2E8F0", background: "#EFF6FF", borderLeft: "2px solid #1E40AF", display: "flex", alignItems: "center" }}>
               <div style={{ background: "#DBEAFE", border: "1px solid #BFDBFE", borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 600, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                Con {agent.prefix}Agent
+                Con Neto
               </div>
             </div>
           </div>
@@ -330,16 +331,13 @@ function AgentBlock({ agent, isLast }: { agent: AgentData; isLast: boolean }) {
 export default function AgentsSection() {
   return (
     <section id="agentes" style={{ scrollMarginTop: 72, padding: "100px 24px", maxWidth: 960, margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: 80 }}>
-        <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>
-          Agentes
-        </p>
-        <h2 style={{ fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500, color: "var(--text)", lineHeight: 1.15, margin: "0 auto 16px", letterSpacing: "-0.02em", maxWidth: 640 }}>
-          Tu operación financiera,<br />en piloto automático
-        </h2>
-        <p style={{ fontSize: 16, color: "var(--text2)", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
-          Agentes de IA que trabajan en segundo plano, sin que tengas que hacer nada.
-        </p>
+      <div style={{ marginBottom: 80 }}>
+        <SectionHeading
+          badge="Agentes"
+          line1="Tu operación financiera,"
+          line2="en piloto automático"
+          desc="Agentes de IA que trabajan en segundo plano, sin que tengas que hacer nada."
+        />
       </div>
 
       {AGENTS.map((agent, i) => (

@@ -2,13 +2,14 @@ import Link from "next/link";
 import MetricsCounter from "@/components/landing/MetricsCounter";
 import ProcessingSteps from "@/components/landing/ProcessingSteps";
 import FAQ from "@/components/landing/FAQ";
-import AppMockup from "@/components/landing/AppMockup";
 import ComingSoon from "@/components/landing/ComingSoon";
-import ScrollReveal from "@/components/landing/ScrollReveal";
+import Reveal from "@/components/landing/Reveal";
+import SectionHeading from "@/components/landing/SectionHeading";
 import PricingSection from "@/components/landing/PricingSection";
 import IllustrationPainPoint1 from "@/components/landing/illustrations/IllustrationPainPoint1";
 import IllustrationPainPoint2 from "@/components/landing/illustrations/IllustrationPainPoint2";
 import IllustrationPainPoint3 from "@/components/landing/illustrations/IllustrationPainPoint3";
+import IllustrationPainPoint4 from "@/components/landing/illustrations/IllustrationPainPoint4";
 import IllustrationFlow from "@/components/landing/illustrations/IllustrationFlow";
 import IllustrationSecurity from "@/components/landing/illustrations/IllustrationSecurity";
 import IllustrationHero from "@/components/landing/illustrations/IllustrationHero";
@@ -92,39 +93,28 @@ const BANKS = [
 
 const PAIN_POINTS = [
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-        <polyline points="10 9 9 9 8 9"/>
-      </svg>
-    ),
-    title: "Revisas estados de cuenta manualmente",
-    desc: "Cada fin de mes abres 3 apps bancarias distintas, exportas PDFs y copias números a una hoja de cálculo. Tarde o temprano algo falla.",
+    title: "Revisas estados de cuenta a mano",
+    desc: "Abres 3 apps bancarias, exportas PDFs y copias números a una hoja. Tarde o temprano algo falla.",
   },
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-    ),
     title: "Tardas horas en entender tus gastos",
-    desc: "¿Cuánto gasté en comida el mes pasado? ¿Cuál tarjeta me conviene liquidar primero? Preguntas simples que te cuestan una tarde entera.",
+    desc: "¿Cuánto gasté en comida? ¿Qué tarjeta liquido primero? Preguntas simples que cuestan una tarde entera.",
   },
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-        <line x1="12" y1="9" x2="12" y2="13"/>
-        <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
-    ),
     title: "Las sorpresas llegan al corte",
-    desc: "Cargos que olvidaste, suscripciones activas que no usas, intereses acumulados. Te enteras cuando ya es tarde para reaccionar.",
+    desc: "Cargos olvidados, suscripciones que no usas, movimientos raros. Te enteras cuando ya es tarde.",
   },
+  {
+    title: "Los intereses crecen sin que lo notes",
+    desc: "La deuda y los intereses se acumulan mes con mes, y nadie te avisa hasta que el saldo ya pesa.",
+  },
+];
+
+const PAIN_ILLUSTRATIONS = [
+  <IllustrationPainPoint1 key="1" />,
+  <IllustrationPainPoint2 key="2" />,
+  <IllustrationPainPoint3 key="3" />,
+  <IllustrationPainPoint4 key="4" />,
 ];
 
 const SECURITY_CARDS = [
@@ -214,12 +204,7 @@ export default function LandingPage() {
         </nav>
 
         <Link href="/chat" style={{ textDecoration: "none" }}>
-          <button style={{
-            background: "#1E40AF", color: "#FFFFFF",
-            border: "none", borderRadius: 6, cursor: "pointer",
-            padding: "9px 18px", fontSize: 14, fontWeight: 500,
-            fontFamily: "inherit",
-          }}>
+          <button className="land-btn-primary" style={{ padding: "9px 18px", fontSize: 14 }}>
             Conectar Gmail
           </button>
         </Link>
@@ -235,33 +220,33 @@ export default function LandingPage() {
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
         <div className="land-fade" style={{
-          display: "inline-flex", alignItems: "center", gap: 7,
-          background: "#DBEAFE", border: "1px solid #BFDBFE",
-          borderRadius: 100, padding: "5px 14px", marginBottom: 16,
+          display: "inline-flex", alignItems: "center", gap: 8,
+          border: "1px solid var(--border2)",
+          borderRadius: 100, padding: "5px 14px", marginBottom: 22,
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "block", flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: "#1E40AF", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 500 }}>
+          <span className="live-dot" style={{ width: 6, height: 6, borderRadius: "50%", display: "block", flexShrink: 0 }} />
+          <span style={{ fontSize: 11, color: "var(--text2)", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 600 }}>
             <TypingBadge text="Asistente financiero personal" />
           </span>
         </div>
-        <div style={{
-          height: 1, width: 0, background: "#1E40AF", borderRadius: 1,
-          margin: "0 auto 16px", animation: "heroLineGrow 1.2s ease-out 0.3s both",
-          maxWidth: 120,
-        }} />
 
         <h1 className="land-fade-2" style={{
-          fontSize: "clamp(48px, 6vw, 80px)",
-          fontWeight: 500, lineHeight: 1.1,
-          letterSpacing: "-0.03em",
-          color: "var(--text)",
-          maxWidth: 760, margin: "0 auto 24px",
+          fontSize: "clamp(46px, 6.4vw, 80px)",
+          fontWeight: 600, lineHeight: 1.05,
+          letterSpacing: "-0.035em",
+          maxWidth: 800, margin: "0 auto 26px",
         }}>
-          <span style={{ display: "block" }}>Tus finanzas,</span>
-          <span className="land-accent-reveal" style={{ color: "var(--accent)", display: "block" }}>
+          <span style={{ display: "block", color: "var(--text)" }}>Tus finanzas,</span>
+          <span className="land-accent-reveal" style={{ color: "var(--headline-muted)", display: "block" }}>
             en piloto automático
           </span>
         </h1>
+
+        <div style={{
+          height: 2, width: 0, background: "var(--accent)", borderRadius: 2,
+          margin: "0 auto 26px", animation: "heroLineGrow 1.2s ease-out 0.5s both",
+          maxWidth: 64,
+        }} />
 
         <WordReveal
           text="Neto lee tus correos bancarios y responde en español cualquier pregunta sobre tu dinero. Sin hojas de cálculo, sin apps extra."
@@ -270,21 +255,11 @@ export default function LandingPage() {
 
         <div className="land-fade-4" style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
           <Link href="/chat" style={{ textDecoration: "none" }}>
-            <button style={{
-              background: "#1E40AF", color: "#FFFFFF",
-              border: "none", borderRadius: 6, cursor: "pointer",
-              padding: "10px 22px", fontSize: 14, fontWeight: 500,
-              fontFamily: "inherit",
-            }}>
+            <button className="land-btn-primary" style={{ padding: "10px 22px", fontSize: 14 }}>
               Empieza gratis
             </button>
           </Link>
-          <a href="#como-funciona" style={{
-            display: "inline-block", textDecoration: "none",
-            background: "transparent", color: "#1E40AF",
-            border: "1px solid #BFDBFE", borderRadius: 6,
-            padding: "10px 22px", fontSize: 14, fontFamily: "inherit",
-          }}>
+          <a href="#como-funciona" className="land-btn-secondary" style={{ padding: "10px 22px", fontSize: 14 }}>
             Ver cómo funciona →
           </a>
         </div>
@@ -344,40 +319,29 @@ export default function LandingPage() {
       <div className="land-sep" />
 
       {/* ── PAIN POINTS ── */}
-      <section style={{ padding: "100px 24px", maxWidth: 960, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>
-            La realidad actual
-          </p>
-          <h2 style={{
-            fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500,
-            color: "var(--text)", lineHeight: 1.15, margin: 0,
-            letterSpacing: "-0.02em",
-          }}>
-            Administrar tu dinero no debería<br />ser un trabajo de medio tiempo
-          </h2>
+      <section style={{ padding: "100px 24px", maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ marginBottom: 64 }}>
+          <SectionHeading
+            badge="Tu realidad hoy"
+            line1="Administrar tu dinero no debería"
+            line2="ser un trabajo de medio tiempo"
+            maxWidth={760}
+          />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
+        <div className="land-cols land-cols--4">
           {PAIN_POINTS.map((p, i) => (
-            <ScrollReveal key={i} delay={i * 110}>
-              <div className="pain-card" style={{
-                background: "#F8FAFC", border: "1px solid #E2E8F0",
-                borderRadius: 16, padding: "28px 24px",
-              }}>
-                <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start" }}>
-                  {i === 0 && <IllustrationPainPoint1 />}
-                  {i === 1 && <IllustrationPainPoint2 />}
-                  {i === 2 && <IllustrationPainPoint3 />}
-                </div>
-                <h3 style={{ fontSize: 15, fontWeight: 500, color: "var(--text)", marginBottom: 10, lineHeight: 1.4 }}>
-                  {p.title}
-                </h3>
-                <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, margin: 0 }}>
-                  {p.desc}
-                </p>
+            <Reveal key={i} delay={i * 90} className="land-col">
+              <div className="illus-card" style={{ height: 116, marginBottom: 24 }}>
+                {PAIN_ILLUSTRATIONS[i]}
               </div>
-            </ScrollReveal>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 10, lineHeight: 1.4 }}>
+                {p.title}
+              </h3>
+              <p style={{ fontSize: 13, color: "var(--text2)", lineHeight: 1.7, margin: 0 }}>
+                {p.desc}
+              </p>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -386,8 +350,10 @@ export default function LandingPage() {
 
       {/* ── PROCESSING STEPS ── */}
       <div id="como-funciona" style={{ scrollMarginTop: 72 }}>
-        <div style={{ display: "flex", justifyContent: "center", paddingTop: 56, paddingBottom: 8 }}>
-          <IllustrationFlow />
+        <div style={{ display: "flex", justifyContent: "center", padding: "64px 24px 0" }}>
+          <Reveal className="illus-card" style={{ width: "100%", maxWidth: 520, padding: "28px 24px" }}>
+            <IllustrationFlow />
+          </Reveal>
         </div>
         <ProcessingSteps />
       </div>
@@ -396,20 +362,15 @@ export default function LandingPage() {
 
       {/* ── BEFORE / AFTER ── */}
       <section style={{ padding: "100px 24px", maxWidth: 800, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>
-            La diferencia
-          </p>
-          <h2 style={{
-            fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500,
-            color: "var(--text)", lineHeight: 1.15, margin: 0,
-            letterSpacing: "-0.02em",
-          }}>
-            Antes y <span style={{ color: "var(--accent)" }}>después</span> de Neto
-          </h2>
+        <div style={{ marginBottom: 56 }}>
+          <SectionHeading
+            badge="La diferencia"
+            line1="Tu dinero, antes"
+            line2="y después de Neto"
+          />
         </div>
 
-        <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #E2E8F0" }}>
+        <Reveal style={{ borderRadius: 16, overflow: "hidden", border: "1px solid #E2E8F0" }}>
           {/* Column headers */}
           <div className="land-ba-header" style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
             <div style={{
@@ -462,7 +423,7 @@ export default function LandingPage() {
               </div>
             </div>
           ))}
-        </div>
+        </Reveal>
       </section>
 
       <div className="land-sep" />
@@ -474,30 +435,28 @@ export default function LandingPage() {
 
       {/* ── SECURITY ── */}
       <section id="seguridad" className="grid-bg" style={{ scrollMarginTop: 72, padding: "100px 24px", maxWidth: 960, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>
-            Tu privacidad primero
-          </p>
-          <h2 style={{
-            fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500,
-            color: "var(--text)", lineHeight: 1.15, margin: 0,
-            letterSpacing: "-0.02em",
-          }}>
-            Construido con seguridad<br />como prioridad
-          </h2>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 36 }}>
+        <div style={{ marginBottom: 40 }}>
+          <SectionHeading
+            badge="Tu privacidad primero"
+            line1="Construido con seguridad"
+            line2="como prioridad"
+          />
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
+          <Reveal className="illus-card" style={{ padding: "24px 28px" }}>
             <IllustrationSecurity />
-          </div>
+          </Reveal>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
           {SECURITY_CARDS.map((card, i) => (
-            <ScrollReveal key={i} delay={i * 90}>
-              <div className="card-hover-line" style={{
-                background: "var(--bg2)", border: "1px solid var(--border)",
-                borderRadius: 16, padding: "26px 22px",
+            <Reveal key={i} delay={i * 80} style={{ height: "100%" }}>
+              <div className="card-hover-line card-lift" style={{
+                background: "var(--card)", border: "1px solid var(--border)",
+                borderRadius: 16, padding: "26px 22px", height: "100%",
               }}>
-                <div style={{ color: "var(--accent2)", marginBottom: 16, opacity: 0.85 }}>{card.icon}</div>
+                <div style={{ color: "var(--accent)", marginBottom: 16, opacity: 0.9 }}>{card.icon}</div>
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", marginBottom: 8, letterSpacing: "-0.01em" }}>
                   {card.title}
                 </h3>
@@ -505,7 +464,7 @@ export default function LandingPage() {
                   {card.desc}
                 </p>
               </div>
-            </ScrollReveal>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -514,18 +473,12 @@ export default function LandingPage() {
 
       {/* ── PRECIOS ── */}
       <section id="precios" className="grid-bg" style={{ scrollMarginTop: 72, padding: "100px 24px", maxWidth: 960, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>
-            Precios
-          </p>
-          <h2 style={{
-            fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500,
-            color: "var(--text)", lineHeight: 1.15, margin: 0,
-            letterSpacing: "-0.02em",
-          }}>
-            Empieza gratis,{" "}
-            crece cuando lo necesites
-          </h2>
+        <div style={{ marginBottom: 48 }}>
+          <SectionHeading
+            badge="Precios"
+            line1="Empieza gratis,"
+            line2="crece cuando lo necesites"
+          />
         </div>
 
         <PricingSection />
@@ -575,20 +528,14 @@ export default function LandingPage() {
             Tu contador personal,<br />siempre disponible
           </h2>
           <p style={{
-            fontSize: 16, color: "rgba(255,255,255,0.55)", lineHeight: 1.7,
+            fontSize: 16, color: "rgba(255,255,255,0.7)", lineHeight: 1.7,
             maxWidth: 500, margin: "0 auto 40px",
           }}>
             Conecta tus cuentas de BBVA, Amex, Nu y 5 bancos más en menos de 2 minutos.
           </p>
 
           <Link href="/chat" style={{ textDecoration: "none" }}>
-            <button style={{
-              background: "#fff", color: "#1E40AF",
-              border: "none", borderRadius: 8, cursor: "pointer",
-              padding: "14px 32px", fontSize: 16, fontWeight: 500,
-              fontFamily: "inherit",
-              boxShadow: "0 0 32px rgba(255,255,255,0.08)",
-            }}>
+            <button className="land-btn-white" style={{ padding: "14px 32px", fontSize: 16 }}>
               Empieza gratis
             </button>
           </Link>
@@ -609,7 +556,7 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
               Únete a <strong style={{ color: "#FFFFFF" }}>+2,400</strong> usuarios en México
             </span>
           </div>

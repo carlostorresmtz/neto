@@ -1,0 +1,20 @@
+{
+  "name": "Neto — Tu asistente financiero personal",
+  "short_name": "Neto",
+  "description": "Conecta tu Gmail y deja que Neto analice tus finanzas en español.",
+  "start_url": "/chat",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1E40AF",
+  "lang": "es-MX",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

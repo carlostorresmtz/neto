@@ -5,6 +5,7 @@ import { useRef, useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import type { GmailMessage } from "@/app/api/gmail/messages/route";
+import BudgetWidget from "@/components/BudgetWidget";
 
 // ── KPI stats data ──
 const STATS = [
@@ -115,13 +116,46 @@ export default function ChatPage() {
   const { data: session } = useSession();
   const [gmailMessages, setGmailMessages] = useState<GmailMessage[] | null>(null);
   const [gmailError, setGmailError] = useState<string | null>(null);
+  const [rateLimitUntil, setRateLimitUntil] = useState<number | null>(null);
+  const [, setTick] = useState(0);
 
   // Keep a ref so the submit handler always has the latest gmailMessages value
   const gmailRef = useRef<typeof gmailMessages>(null);
   useEffect(() => { gmailRef.current = gmailMessages; }, [gmailMessages]);
 
-  const { messages, input, handleInputChange, handleSubmit: _handleSubmit, isLoading, setInput } =
-    useChat({ api: "/api/chat" });
+  const { messages, input, handleInputChange, handleSubmit: _handleSubmit, isLoading, setInput, setMessages } =
+    useChat({
+      api: "/api/chat",
+      onError: (err) => {
+        // El backend devuelve 429 con JSON { error: "rate_limit", resetAt }.
+        // El AI SDK expone el body como err.message cuando la respuesta no es OK.
+        try {
+          const parsed = JSON.parse(err.message) as { error?: string; resetAt?: number };
+          if (parsed?.error === "rate_limit" && parsed.resetAt) {
+            setRateLimitUntil(parsed.resetAt);
+          }
+        } catch {}
+      },
+    });
+
+  // Mientras hay un rate limit activo, re-renderiza cada 30s para actualizar el
+  // tiempo restante y reactivar el input cuando expire la ventana.
+  useEffect(() => {
+    if (!rateLimitUntil) return;
+    const id = setInterval(() => {
+      if (Date.now() >= rateLimitUntil) {
+        setRateLimitUntil(null);
+      } else {
+        setTick(t => t + 1);
+      }
+    }, 30000);
+    return () => clearInterval(id);
+  }, [rateLimitUntil]);
+
+  const isRateLimited = rateLimitUntil !== null && Date.now() < rateLimitUntil;
+  const minutesLeft = isRateLimited
+    ? Math.max(1, Math.ceil((rateLimitUntil! - Date.now()) / 60000))
+    : 0;
 
   // Wrap submit to inject gmailContext from the latest ref value
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -202,6 +236,45 @@ export default function ChatPage() {
           <Link href="/conexiones" style={{ color: "var(--accent2)", textDecoration: "none" }}>
             conecta Gmail para ver los tuyos
           </Link>
+        </div>
+      )}
+
+      {/* ── Budget widget (solo si hay presupuesto configurado) ── */}
+      <BudgetWidget />
+
+      {/* ── Rate limit banner ── */}
+      {isRateLimited && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "8px 16px",
+          background: "rgba(217,119,6,0.08)", borderBottom: "1px solid rgba(217,119,6,0.2)",
+          fontSize: 11, color: "#D97706", flexShrink: 0,
+        }}>
+          <WarnIcon />
+          Alcanzaste el límite de mensajes del plan gratuito. Podrás escribir de nuevo en ~{minutesLeft} min.
+        </div>
+      )}
+
+      {/* ── Clear conversation toolbar ── */}
+      {messages.length > 0 && (
+        <div style={{
+          display: "flex", justifyContent: "flex-end",
+          padding: "6px 16px",
+          borderBottom: "1px solid var(--border)",
+          background: "var(--bg)", flexShrink: 0,
+        }}>
+          <button
+            type="button"
+            className="chat-clear-btn"
+            onClick={() => setMessages([])}
+            aria-label="Limpiar conversación"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+            Limpiar conversación
+          </button>
         </div>
       )}
 
@@ -317,10 +390,10 @@ export default function ChatPage() {
             <input
               value={input}
               onChange={handleInputChange}
-              placeholder="Pregúntale a Neto sobre tus finanzas…"
-              disabled={isLoading}
+              placeholder={isRateLimited ? `Límite alcanzado — espera ~${minutesLeft} min` : "Pregúntale a Neto sobre tus finanzas…"}
+              disabled={isLoading || isRateLimited}
             />
-            <button type="submit" className="send-btn" disabled={isLoading || !input.trim()}>
+            <button type="submit" className="send-btn" disabled={isLoading || isRateLimited || !input.trim()}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
               </svg>

@@ -1,6 +1,6 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
-import { transactions, subscriptions, FINANCIAL_CONTEXT } from "@/lib/data";
+import { transactions, FINANCIAL_CONTEXT } from "@/lib/data";
 import { auth } from "@/auth";
 import { agentRateLimit } from "@/lib/rateLimit";
 
@@ -21,26 +21,29 @@ function extractJSON(text: string): Record<string, unknown> | null {
 
 const SYSTEM_PROMPT = `IMPORTANTE: Responde ÚNICAMENTE con un objeto JSON válido. Sin texto adicional, sin markdown, sin explicaciones. Solo el JSON.
 
-Eres CierreAgent, un agente financiero que genera resúmenes mensuales claros y accionables.
+Eres DepositosAgent. Analiza los correos bancarios y detecta TODOS los ingresos: depósitos en efectivo, transferencias recibidas (SPEI), devoluciones y nóminas. Ignora los cargos y compras.
+
+Palabras clave de ingresos en correos bancarios mexicanos: 'recibiste', 'abono', 'depósito', 'transferencia recibida', 'SPEI recibido', 'te depositaron', 'devolución'.
 
 Responde con este JSON exacto:
 {
-  "periodo": "Mayo 2025",
-  "total_gastos": 0,
-  "total_ingresos": 0,
-  "ahorro_neto": 0,
-  "top_categorias": [{ "nombre": "string", "monto": 0, "variacion": 0, "emoji": "string" }],
-  "vs_mes_anterior": { "gastos_anterior": 0, "diferencia": 0, "porcentaje": 0 },
-  "suscripciones": { "total_mensual": 0, "total_anual": 0, "cantidad": 0 },
-  "destacado": "string",
-  "recomendacion": "string",
+  "ingresos": [{ "fecha": "string", "monto": 0, "origen": "string", "tipo": "transferencia", "banco": "string" }],
+  "totalIngresos": 0,
+  "ingresoMasReciente": { "monto": 0, "origen": "string", "fecha": "string" },
   "resumen": "string"
 }
-"variacion" es el % de cambio vs mes anterior (positivo = aumentó). "destacado" es el dato más relevante en 1 oración. "recomendacion" es una acción específica en 1 oración.`;
+
+Reglas:
+- "tipo" debe ser exactamente uno de: "transferencia", "efectivo", "nomina", "devolucion".
+- "origen" = quién envió el dinero o la descripción del depósito (si no aparece, usa "No especificado").
+- "totalIngresos" = suma de todos los montos detectados.
+- "ingresoMasReciente" = el ingreso con la fecha más reciente. Si no hay ingresos, usa null.
+- Si no detectas ningún ingreso, devuelve "ingresos": [], "totalIngresos": 0, "ingresoMasReciente": null.
+- Todos los montos en MXN (pesos mexicanos).`;
 
 export async function POST(req: Request) {
   const session = await auth();
-  const limited = agentRateLimit(session?.user?.email ?? "anon", "cierre");
+  const limited = agentRateLimit(session?.user?.email ?? "anon", "depositos");
   if (limited) return limited;
 
   const body = await req.json().catch(() => ({}));
@@ -49,15 +52,15 @@ export async function POST(req: Request) {
   let dataContext: string;
 
   if (gmailContext && Array.isArray(gmailContext) && gmailContext.length > 0) {
-    const emails = gmailContext.slice(0, 30);
+    const emails = gmailContext.slice(0, 40);
     const emailList = emails
       .map((m, i) => `${i + 1}. De: ${m.from}\n   Asunto: ${m.subject}\n   Fecha: ${m.date}\n   Detalle: ${(m.snippet ?? "").substring(0, 150)}`)
       .join("\n\n");
-    dataContext = `Genera un resumen mensual de cierre basado en estos ${emails.length} correos bancarios reales. Infiere gastos, ingresos y categorías:\n\n${emailList}`;
+    dataContext = `Analiza estos ${emails.length} correos bancarios reales y detecta TODOS los ingresos (depósitos, transferencias recibidas, devoluciones, nóminas):\n\n${emailList}`;
   } else {
     const mayo = transactions.mayo ?? [];
-    const abril = transactions.abril ?? [];
-    dataContext = `${FINANCIAL_CONTEXT}\n\nTRANSACCIONES MAYO 2025:\n${mayo.map(t => `${t.date}: ${t.name} ${t.amount > 0 ? "+" : ""}$${t.amount} (${t.cat})`).join("\n")}\n\nTRANSACCIONES ABRIL 2025:\n${abril.map(t => `${t.date}: ${t.name} ${t.amount > 0 ? "+" : ""}$${t.amount} (${t.cat})`).join("\n")}\n\nSUSCRIPCIONES:\n${subscriptions.map(s => `${s.name}: $${s.amount}/mes`).join("\n")}`;
+    const ingresos = mayo.filter(t => t.amount > 0);
+    dataContext = `${FINANCIAL_CONTEXT}\n\nINGRESOS MAYO 2025:\n${ingresos.map(t => `- ${t.date}: ${t.name} +$${t.amount} (${t.cat}) [${t.account.toUpperCase()}]`).join("\n")}`;
   }
 
   const { text } = await generateText({
@@ -69,7 +72,14 @@ export async function POST(req: Request) {
 
   const parsed = extractJSON(text);
   if (!parsed) {
-    return Response.json({ error: true, mensaje: "No se pudo analizar la respuesta", alertas: [], resumen: "Error temporal. Intenta de nuevo." });
+    return Response.json({
+      error: true,
+      mensaje: "No se pudo analizar la respuesta",
+      ingresos: [],
+      totalIngresos: 0,
+      ingresoMasReciente: null,
+      resumen: "Error temporal. Intenta de nuevo.",
+    });
   }
   return Response.json(parsed);
 }

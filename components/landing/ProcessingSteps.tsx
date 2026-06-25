@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import SectionHeading from "./SectionHeading";
 
 const STEPS = [
   {
@@ -54,17 +55,12 @@ export default function ProcessingSteps() {
 
   return (
     <section style={{ padding: "100px 24px", maxWidth: 800, margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 14, fontWeight: 500 }}>
-          Cómo funciona
-        </p>
-        <h2 style={{
-          fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500,
-          color: "var(--text)", lineHeight: 1.15, margin: 0,
-          letterSpacing: "-0.02em",
-        }}>
-          De correo bancario<br />a respuesta en segundos
-        </h2>
+      <div style={{ marginBottom: 48 }}>
+        <SectionHeading
+          badge="Cómo funciona"
+          line1="De correo bancario"
+          line2="a respuesta en segundos"
+        />
       </div>
 
       {/* Mock email card */}

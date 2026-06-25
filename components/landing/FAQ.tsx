@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import SectionHeading from "./SectionHeading";
 
 const ITEMS = [
   {
@@ -107,17 +108,12 @@ export default function FAQ() {
 
   return (
     <section style={{ padding: "0 24px 96px", maxWidth: 720, margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: 48 }}>
-        <p style={{ fontSize: 11, color: "var(--text3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12, fontWeight: 500 }}>
-          Preguntas frecuentes
-        </p>
-        <h2 style={{
-          fontSize: "clamp(32px, 4vw, 52px)", fontWeight: 500,
-          color: "var(--text)", lineHeight: 1.15, margin: 0,
-          letterSpacing: "-0.02em",
-        }}>
-          Todo lo que necesitas saber
-        </h2>
+      <div style={{ marginBottom: 48 }}>
+        <SectionHeading
+          badge="Preguntas frecuentes"
+          line1="Todo lo que"
+          line2="necesitas saber"
+        />
       </div>
 
       <div ref={containerRef} style={{ display: "flex", flexDirection: "column", gap: 10 }}>

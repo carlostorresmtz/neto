@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import ScrollReset from "@/components/ScrollReset";
@@ -33,6 +33,11 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   icons: { icon: "/favicon.svg" },
+  manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1E40AF",
 };
 
 export default function RootLayout({

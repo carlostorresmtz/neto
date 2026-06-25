@@ -1,77 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import LineArt, { STROKE, ACCENT } from "./LineArt";
 
+/** Gastos difíciles de entender: línea zigzag volátil con nodos. */
 export default function IllustrationPainPoint2() {
-  const ref = useRef<SVGSVGElement>(null);
-  const [on, setOn] = useState(false);
-
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setOn(true); return; }
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setOn(true); obs.disconnect(); } },
-      { threshold: 0, rootMargin: "0px 0px -30px 0px" }
-    );
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, []);
-
-  const t = "stroke-dashoffset 0.9s ease, opacity 0.6s ease";
-
+  const s = { stroke: STROKE, strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   return (
-    <svg ref={ref} width="120" height="80" viewBox="0 0 120 80" fill="none" aria-hidden>
-      {/* Outer ring */}
-      <circle cx="60" cy="40" r="28"
-        stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeDasharray="4 3"
-        opacity={on ? 1 : 0} style={{ transition: "opacity 0.5s ease 0.7s" }}
-      />
-      {/* Clock face */}
-      <circle cx="60" cy="40" r="22"
-        stroke="rgba(0,0,0,0.2)" strokeWidth="1.3"
-        strokeDasharray="100" pathLength="100"
-        strokeDashoffset={on ? 0 : 100}
-        style={{ transition: t }}
-      />
-      {/* Tick marks at 12, 3, 6, 9 */}
-      {[
-        { x1: 60, y1: 19, x2: 60, y2: 23 },
-        { x1: 81, y1: 40, x2: 77, y2: 40 },
-        { x1: 60, y1: 61, x2: 60, y2: 57 },
-        { x1: 39, y1: 40, x2: 43, y2: 40 },
-      ].map((l, i) => (
-        <line key={i} {...l}
-          stroke="rgba(0,0,0,0.25)" strokeWidth="1.3"
-          opacity={on ? 1 : 0} style={{ transition: `opacity 0.3s ease ${0.2 + i * 0.07}s` }}
-        />
+    <LineArt width={140} height={92} viewBox="0 0 140 92">
+      {/* axis */}
+      <line className="draw-line" pathLength={1} x1="18" y1="78" x2="122" y2="78" stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: "0s", opacity: 0.4 }} />
+      <line className="draw-line" pathLength={1} x1="18" y1="14" x2="18" y2="78" stroke={STROKE} strokeWidth="1" strokeLinecap="round" style={{ transitionDelay: "0.05s", opacity: 0.4 }} />
+      {/* volatile zigzag */}
+      <polyline className="draw-line" pathLength={1}
+        points="18,58 34,34 50,64 66,28 82,52 98,22 114,46"
+        {...s} style={{ transitionDelay: "0.2s" }} />
+      {/* vertices */}
+      {[[34, 34], [66, 28], [98, 22]].map(([x, y], i) => (
+        <circle key={i} className="draw-fade" cx={x} cy={y} r="2.2" fill={STROKE} style={{ transitionDelay: `${0.9 + i * 0.08}s` }} />
       ))}
-      {/* Hour hand (pointing ~5) */}
-      <line x1="60" y1="40" x2="72" y2="52"
-        stroke="rgba(0,0,0,0.4)" strokeWidth="1.8" strokeLinecap="round"
-        strokeDasharray="100" pathLength="100"
-        strokeDashoffset={on ? 0 : 100}
-        style={{ transition: t, transitionDelay: "0.35s" }}
-      />
-      {/* Minute hand (pointing ~10) */}
-      <line x1="60" y1="40" x2="48" y2="25"
-        stroke="rgba(0,0,0,0.55)" strokeWidth="1.5" strokeLinecap="round"
-        strokeDasharray="100" pathLength="100"
-        strokeDashoffset={on ? 0 : 100}
-        style={{ transition: t, transitionDelay: "0.5s" }}
-      />
-      {/* Center dot */}
-      <circle cx="60" cy="40" r="2.2" fill="rgba(0,0,0,0.6)"
-        opacity={on ? 1 : 0} style={{ transition: "opacity 0.3s ease 0.6s" }}
-      />
-      {/* Radiating accent dots */}
-      <circle cx="60" cy="5" r="2" fill="rgba(30,64,175,0.45)"
-        opacity={on ? 1 : 0} style={{ transition: "opacity 0.4s ease 0.8s" }}
-      />
-      <circle cx="100" cy="14" r="1.4" fill="rgba(30,64,175,0.3)"
-        opacity={on ? 1 : 0} style={{ transition: "opacity 0.4s ease 0.9s" }}
-      />
-      <circle cx="110" cy="42" r="1.8" fill="rgba(30,64,175,0.35)"
-        opacity={on ? 1 : 0} style={{ transition: "opacity 0.4s ease 1s" }}
-      />
-    </svg>
+      {/* accent peak */}
+      <circle className="draw-fade" cx="114" cy="46" r="3" fill={ACCENT} style={{ transitionDelay: "1.15s" }} />
+    </LineArt>
   );
 }

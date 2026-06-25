@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
@@ -19,6 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Estados de cuenta", href: "/estados",          badge: "4",   section: "menu",     icon: "monitor" },
   { label: "Mis gastos",        href: "/gastos",           badge: null,  section: "menu",     icon: "dollar" },
   { label: "Análisis",          href: "/analisis",         badge: null,  section: "menu",     icon: "bar" },
+  { label: "Presupuesto",       href: "/presupuesto",      badge: null,  section: "menu",     icon: "target" },
   { label: "Suscripciones",     href: "/suscripciones",    badge: "7",   section: "menu",     icon: "clock" },
   { label: "Alertas",           href: "/alertas",          badge: null,  section: "menu",     icon: "bell" },
   { label: "BBVA Débito",       href: "/cuentas/bbva",     badge: null,  section: "accounts", icon: "card",
@@ -28,6 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Nu Crédito",        href: "/cuentas/nu",       badge: null,  section: "accounts", icon: "card",
     bankBadge: { bg: "#820ad1", color: "#fff", text: "Nu" } },
   { label: "Conexiones",        href: "/conexiones",       badge: "0/2", section: "settings", icon: "share" },
+  { label: "Configuración",     href: "/configuracion",    badge: null,  section: "settings", icon: "settings" },
 ];
 
 const AGENT_SUB_ITEMS = [
@@ -36,9 +38,11 @@ const AGENT_SUB_ITEMS = [
   { label: "ComparadorAgent",  href: "/agentes#comparador", icon: "creditcard" },
   { label: "DeduciblesAgent",  href: "/agentes#deducibles", icon: "file" },
   { label: "FraudeAgent",      href: "/agentes#fraude",     icon: "shield" },
+  { label: "DepositosAgent",   href: "/agentes#depositos",  icon: "income" },
 ];
 
 interface AlertInfo { count: number; level: "urgent" | "important" | "info" | null }
+interface BudgetAlertInfo { level: "ok" | "warn" | "over"; pct: number }
 
 // ── helpers defined OUTSIDE AppShell so their reference is stable ──
 
@@ -57,7 +61,10 @@ function NavIcon({ type, size = 14 }: { type: string; size?: number }) {
   if (type === "creditcard") return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>;
   if (type === "file")       return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
   if (type === "shield")     return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+  if (type === "income")     return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>;
+  if (type === "target")     return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
   if (type === "chevron")    return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><polyline points="6 9 12 15 18 9"/></svg>;
+  if (type === "settings")   return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
   return null;
 }
 
@@ -78,11 +85,16 @@ interface NavItemElProps {
   active: boolean;
   alertInfo: AlertInfo;
   alertBadgeColor: string;
+  budgetAlert: BudgetAlertInfo | null;
 }
 
-function NavItemEl({ item, active, alertInfo, alertBadgeColor }: NavItemElProps) {
+function NavItemEl({ item, active, alertInfo, alertBadgeColor, budgetAlert }: NavItemElProps) {
   const isAlertas = item.href === "/alertas";
   const showAlertBadge = isAlertas && alertInfo.count > 0;
+
+  const isBudget = item.href === "/presupuesto";
+  const showBudgetBadge = isBudget && budgetAlert !== null && budgetAlert.level !== "ok";
+  const budgetColor = budgetAlert?.level === "over" ? "#ef4444" : "#f97316";
 
   return (
     <Link href={item.href}>
@@ -92,6 +104,10 @@ function NavItemEl({ item, active, alertInfo, alertBadgeColor }: NavItemElProps)
         {showAlertBadge ? (
           <span className="nav-badge" style={{ background: alertBadgeColor, color: "#fff" }}>
             {alertInfo.count}
+          </span>
+        ) : showBudgetBadge ? (
+          <span className="nav-badge" style={{ background: budgetColor, color: "#fff" }}>
+            {Math.round(budgetAlert!.pct)}%
           </span>
         ) : item.badge ? (
           <span className="nav-badge">{item.badge}</span>
@@ -105,10 +121,12 @@ function NavItemEl({ item, active, alertInfo, alertBadgeColor }: NavItemElProps)
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [alertInfo, setAlertInfo] = useState<AlertInfo>({ count: 0, level: null });
+  const [budgetAlert, setBudgetAlert] = useState<BudgetAlertInfo | null>(null);
   const [agentsExpanded, setAgentsExpanded] = useState(false);
   const { data: session } = useSession();
 
@@ -136,9 +154,31 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    const readBudget = () => {
+      try {
+        const v = localStorage.getItem("neto_budget_alert");
+        if (v) setBudgetAlert(JSON.parse(v));
+      } catch {}
+    };
+    readBudget();
+    window.addEventListener("neto-budget-update", readBudget);
+    return () => window.removeEventListener("neto-budget-update", readBudget);
+  }, []);
+
+  useEffect(() => {
     const saved = localStorage.getItem("neto_agents_expanded");
     if (saved !== null) setAgentsExpanded(saved === "true");
   }, []);
+
+  // Onboarding: si el usuario nunca completó la bienvenida, lo mandamos ahí
+  // la primera vez. /bienvenida se excluye para no crear un loop.
+  useEffect(() => {
+    if (pathname === "/bienvenida") return;
+    try {
+      const done = localStorage.getItem("neto_onboarding_completed");
+      if (done !== "true") router.replace("/bienvenida");
+    } catch {}
+  }, [pathname, router]);
 
   useEffect(() => {
     const saved = localStorage.getItem("neto-theme") as "dark" | "light" | null;
@@ -198,6 +238,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           active={pathname === item.href}
           alertInfo={alertInfo}
           alertBadgeColor={alertBadgeColor}
+          budgetAlert={budgetAlert}
         />
       ))}
 
@@ -247,6 +288,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           active={pathname === item.href}
           alertInfo={alertInfo}
           alertBadgeColor={alertBadgeColor}
+          budgetAlert={budgetAlert}
         />
       ))}
 
@@ -258,10 +300,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           active={pathname === item.href}
           alertInfo={alertInfo}
           alertBadgeColor={alertBadgeColor}
+          budgetAlert={budgetAlert}
         />
       ))}
     </>
   );
+
+  // La pantalla de bienvenida se muestra a pantalla completa, sin el chrome
+  // del shell (sidebar / topbar).
+  if (pathname === "/bienvenida") {
+    return <>{children}</>;
+  }
 
   return (
     <div style={{

@@ -1,6 +1,8 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 import { transactions, subscriptions, FINANCIAL_CONTEXT } from "@/lib/data";
+import { auth } from "@/auth";
+import { agentRateLimit } from "@/lib/rateLimit";
 
 interface GmailMessage {
   from: string; subject: string; date: string; snippet?: string;
@@ -27,6 +29,10 @@ Responde con este JSON exacto:
 Máximo 6 alertas ordenadas por urgencia. tipo debe ser exactamente "URGENTE", "IMPORTANTE" o "INFORMATIVO".`;
 
 export async function POST(req: Request) {
+  const session = await auth();
+  const limited = agentRateLimit(session?.user?.email ?? "anon", "alertas");
+  if (limited) return limited;
+
   const body = await req.json().catch(() => ({}));
   const { gmailContext } = body as { gmailContext?: GmailMessage[] };
 
