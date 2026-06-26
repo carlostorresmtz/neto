@@ -500,12 +500,12 @@ export default function LandingPage() {
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, marginBottom: 16, maxWidth: 200 }}>
               Tu contador personal con IA. Control financiero en lenguaje natural.
             </p>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0 }}>Hecho en Monterrey 🇲🇽</p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", margin: 0 }}>Hecho en Monterrey 🇲🇽</p>
           </div>
 
           {/* Producto */}
           <div>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20, margin: "0 0 20px" }}>Producto</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.9)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20, margin: "0 0 20px" }}>Producto</p>
             {[
               { label: "Cómo funciona", href: "#como-funciona" },
               { label: "Precios",        href: "#precios" },
@@ -518,14 +518,14 @@ export default function LandingPage() {
 
           {/* Legal */}
           <div>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20, margin: "0 0 20px" }}>Legal</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.9)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20, margin: "0 0 20px" }}>Legal</p>
             <a href="/privacidad" className="footer-link">Privacidad</a>
             <a href="/terminos"   className="footer-link">Términos de uso</a>
           </div>
 
           {/* Contacto */}
           <div>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20, margin: "0 0 20px" }}>Contacto</p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.9)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 20, margin: "0 0 20px" }}>Contacto</p>
             <a href="mailto:hola@useneto.com.mx" className="footer-link">hola@useneto.com.mx</a>
             <a href="https://x.com/useneto" className="footer-link" target="_blank" rel="noopener noreferrer">@useneto</a>
           </div>
@@ -538,8 +538,8 @@ export default function LandingPage() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
           flexWrap: "wrap", gap: 12,
         }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>© 2026 Neto · Todos los derechos reservados</span>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>México 🇲🇽</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>© 2026 Neto · Todos los derechos reservados</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>México 🇲🇽</span>
         </div>
       </footer>
 

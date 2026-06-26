@@ -1465,11 +1465,28 @@ html { scroll-behavior: smooth; }
 
 /* ── FOOTER LINKS (footer stays dark) ── */
 .footer-link {
-  color: rgba(255,255,255,0.5); text-decoration: none;
+  color: rgba(255,255,255,0.7); text-decoration: none;
   font-size: 13px; display: block; margin-bottom: 12px;
   transition: color 0.15s ease;
 }
 .footer-link:hover { color: #FFFFFF; }
+
+/* ── KEYBOARD FOCUS STATES (accesibilidad) ──
+   Solo :focus-visible para no afectar clicks del mouse.
+   El anillo hereda el border-radius de cada elemento. */
+.land-btn-primary:focus-visible,
+.land-btn-secondary:focus-visible,
+.land-btn-white:focus-visible,
+.land-nav-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+/* Footer sobre fondo oscuro: usa el azul más claro para contraste */
+.footer-link:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
 
 /* ── DOT GRID BACKGROUND ── */
 .dot-grid {

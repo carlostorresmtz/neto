@@ -13,12 +13,12 @@ export const metadata: Metadata = {
   description:
     "Conecta tu Gmail y deja que Neto lea tus correos bancarios. Analiza gastos, detecta suscripciones y responde preguntas sobre tu dinero en segundos.",
   alternates: {
-    canonical: "/",
+    canonical: "https://www.useneto.com.mx",
   },
   openGraph: {
-    title: "Neto — Tu asistente financiero personal",
+    title: "Neto — Asistente financiero personal para México",
     description:
-      "Conecta tu Gmail y deja que Neto lea tus correos bancarios. Analiza gastos, detecta suscripciones y responde preguntas sobre tu dinero en segundos.",
+      "Neto lee tus correos bancarios y responde en español cualquier pregunta sobre tu dinero. Sin hojas de cálculo, sin apps extra.",
     url: "https://www.useneto.com.mx",
     siteName: "Neto",
     locale: "es_MX",
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Neto — Tu asistente financiero personal",
+    title: "Neto — Asistente financiero personal para México",
     description:
-      "Conecta tu Gmail y deja que Neto lea tus correos bancarios. Analiza gastos, detecta suscripciones y responde preguntas sobre tu dinero.",
+      "Neto lee tus correos bancarios y responde en español cualquier pregunta sobre tu dinero. Sin hojas de cálculo, sin apps extra.",
     site: "@useneto",
   },
   robots: { index: true, follow: true },

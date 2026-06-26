@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Neto — Tu asistente financiero personal";
+export const alt = "Neto — Asistente financiero personal para México";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -11,7 +11,7 @@ export default function Image() {
         style={{
           width: 1200,
           height: 630,
-          background: "#0d0f0e",
+          background: "#FFFFFF",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -20,91 +20,96 @@ export default function Image() {
           position: "relative",
         }}
       >
-        {/* Subtle glow */}
+        {/* Subtle blue glow (paleta actual) */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
+            top: "42%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 700,
-            height: 700,
+            width: 760,
+            height: 760,
             borderRadius: "50%",
             background:
-              "radial-gradient(circle, rgba(184,245,102,0.07) 0%, transparent 65%)",
+              "radial-gradient(circle, rgba(59,130,246,0.10) 0%, transparent 65%)",
             display: "flex",
           }}
         />
 
-        {/* Logo mark */}
+        {/* Logo mark — cuadro azul con el mini-gráfico en blanco */}
         <div
           style={{
-            width: 72,
-            height: 72,
-            borderRadius: 18,
-            background: "#b8f566",
+            width: 88,
+            height: 88,
+            borderRadius: 22,
+            background: "#1E40AF",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            marginBottom: 36,
+            marginBottom: 34,
+            boxShadow: "0 18px 40px rgba(30,64,175,0.28)",
           }}
         >
-          {/* Chart icon approximated with border */}
-          <div
-            style={{
-              width: 36,
-              height: 28,
-              borderLeft: "3px solid #0d0f0e",
-              borderBottom: "3px solid #0d0f0e",
-              display: "flex",
-            }}
-          />
+          <svg
+            width="46"
+            height="46"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="1,11 4,6 7,9 11,3 15,5" />
+          </svg>
         </div>
 
         {/* Wordmark */}
         <div
           style={{
-            fontSize: 52,
-            color: "#e8ebe9",
-            letterSpacing: "-0.02em",
-            marginBottom: 20,
+            fontSize: 60,
+            fontWeight: 600,
+            color: "#0F172A",
+            letterSpacing: "-0.03em",
+            marginBottom: 18,
             display: "flex",
           }}
         >
           Neto
         </div>
 
-        {/* Tagline */}
+        {/* Tagline — headline de la landing */}
         <div
           style={{
-            fontSize: 28,
-            color: "rgba(232,235,233,0.55)",
+            fontSize: 32,
+            fontWeight: 500,
+            color: "#334155",
             letterSpacing: "-0.01em",
             display: "flex",
           }}
         >
-          Tu asistente financiero personal
+          Tus finanzas, en piloto automático
         </div>
 
-        {/* Pill badges */}
+        {/* Pill badges (azul corporativo) */}
         <div
           style={{
             display: "flex",
             gap: 14,
-            marginTop: 44,
+            marginTop: 46,
           }}
         >
-          {["📧 Conecta Gmail", "💳 Analiza gastos", "🔒 Solo lectura"].map(
+          {["📧 Conecta tu Gmail", "💳 Analiza tus gastos", "🔒 Solo lectura"].map(
             (label) => (
               <div
                 key={label}
                 style={{
-                  background: "rgba(184,245,102,0.09)",
-                  border: "1px solid rgba(184,245,102,0.22)",
+                  background: "#EFF6FF",
+                  border: "1px solid #BFDBFE",
                   borderRadius: 100,
                   padding: "10px 22px",
                   fontSize: 18,
-                  color: "#b8f566",
+                  color: "#1E40AF",
                   display: "flex",
                 }}
               >
@@ -120,7 +125,7 @@ export default function Image() {
             position: "absolute",
             bottom: 40,
             fontSize: 16,
-            color: "rgba(232,235,233,0.25)",
+            color: "#64748B",
             display: "flex",
           }}
         >
