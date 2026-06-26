@@ -137,6 +137,76 @@ git push origin develop
 
 ---
 
+## OAuth para desarrollo local — colaboradores (EN PROGRESO)
+
+Guía para que un colaborador pueda **iniciar sesión con Google desde su localhost**
+(ej. `http://localhost:3001`) sin tocar las credenciales de producción.
+
+**Decisión tomada:** Opción **A** — crear un **cliente OAuth NUEVO dedicado a
+desarrollo**, en el **mismo proyecto de GCP** que producción. El colaborador recibe
+el ID + secret de *ese* cliente, nunca el de producción. El cliente de prod **no se
+toca**. El consent screen (scope + test users) se comparte a nivel proyecto, así que
+se reutiliza.
+
+> Alternativa descartada (B): reutilizar el cliente de prod y compartir su secret →
+> riesgo de fuga del secret de producción. No se hizo.
+
+**Contexto verificado:**
+- `auth.ts` usa `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, scope
+  `openid email profile https://www.googleapis.com/auth/gmail.readonly`.
+- Callback de NextAuth: `/api/auth/callback/google`.
+- Credenciales de prod viven en Vercel (Production/Preview/Development), cifradas.
+- `gcloud` NO está instalado → todo se hace en la consola web de Google Cloud.
+
+### Pasos en Google Cloud Console (cuenta dueña del proyecto, NO la del colaborador)
+
+**1. Proyecto correcto** — https://console.cloud.google.com/apis/credentials →
+seleccionar el proyecto de Neto (donde aparece el cliente de prod "Neto Web"). No
+editar ese cliente.
+
+**2. Consent screen (Testing)** — https://console.cloud.google.com/auth/audience
+- Confirmar modo **Testing**.
+- Agregar **`panislouis@gmail.com`** como **usuario de prueba (test user)**.
+- Confirmar que el scope **`https://www.googleapis.com/auth/gmail.readonly`** esté declarado.
+
+**3. Crear cliente OAuth nuevo** (APIs y servicios → Credenciales → "+ Crear
+credenciales" → "ID de cliente de OAuth"):
+- Tipo: **Aplicación web**. Nombre sugerido: `Neto Dev (localhost)`.
+- **URIs de redirección autorizadas:**
+  - `http://localhost:3001/api/auth/callback/google`
+  - `http://localhost:3000/api/auth/callback/google`
+- **Orígenes de JavaScript autorizados:**
+  - `http://localhost:3001`
+  - `http://localhost:3000`
+
+**4. Gmail API habilitada** — https://console.cloud.google.com/apis/library/gmail.googleapis.com
+→ debe estar **Habilitada** en el proyecto.
+
+**5. Entregar credenciales del cliente DEV al colaborador** (por canal seguro:
+gestor de contraseñas / 1Password / mensaje cifrado — **NUNCA** en git ni en chat):
+- `GOOGLE_CLIENT_ID` (del cliente dev)
+- `GOOGLE_CLIENT_SECRET` (del cliente dev)
+
+El colaborador los pone en **su** `.env.local` junto con:
+```
+NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_SECRET=<genera uno: openssl rand -base64 32>
+GOOGLE_CLIENT_ID=<dev>
+GOOGLE_CLIENT_SECRET=<dev>
+```
+> ⚠️ El `Client ID`/`Secret` del cliente dev se ven SOLO en el modal de Google Cloud
+> al crearlo (no se pueden recuperar por CLI). Cópialos en ese momento.
+
+### Estado / dónde nos quedamos
+- [x] Decisión A tomada; recon hecho (auth.ts, Vercel env, gcloud ausente).
+- [ ] Paso 1: confirmar proyecto correcto.
+- [ ] Paso 2: test user `panislouis@gmail.com` + scope gmail.readonly.
+- [ ] Paso 3: crear cliente "Neto Dev (localhost)" con redirects/orígenes.
+- [ ] Paso 4: confirmar Gmail API habilitada.
+- [ ] Paso 5: compartir ID+secret dev por canal seguro.
+
+---
+
 ## Licencia
 
 Propietario — Neto. Todos los derechos reservados.
