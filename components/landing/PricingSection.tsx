@@ -95,7 +95,7 @@ export default function PricingSection() {
                 <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 28 }}>
                   {plan.period === "para siempre"
                     ? "para siempre"
-                    : annual ? "facturado anualmente" : "facturado mensualmente"}
+                    : `${plan.seatNote ? `${plan.seatNote} · ` : ""}facturado ${annual ? "anualmente" : "mensualmente"}`}
                 </div>
                 <div style={{ flex: 1 }}>
                   {plan.features.map(f => (

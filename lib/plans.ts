@@ -14,6 +14,12 @@ export interface Plan {
   cta: string;
   ctaAccent: boolean;
   popular: boolean;
+  /**
+   * Aclaración opcional del precio (p. ej. "por cada 10 usuarios"). Se antepone
+   * al texto de facturación en la landing y el modal. Si no se define, no se
+   * muestra nada extra.
+   */
+  seatNote?: string;
 }
 
 /**
@@ -72,5 +78,6 @@ export const PLANS: Plan[] = [
     cta: "Contactar",
     ctaAccent: false,
     popular: false,
+    seatNote: "por cada 10 usuarios",
   },
 ];

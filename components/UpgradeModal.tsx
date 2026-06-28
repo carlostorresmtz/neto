@@ -120,7 +120,9 @@ export default function UpgradeModal({ open, onClose, currentPlan, onSelectPlan 
                   )}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 18 }}>
-                  {plan.period === "para siempre" ? "para siempre" : "facturado mensualmente"}
+                  {plan.period === "para siempre"
+                    ? "para siempre"
+                    : `${plan.seatNote ? `${plan.seatNote} · ` : ""}facturado mensualmente`}
                 </div>
 
                 {/* Banner solo para Pro */}
