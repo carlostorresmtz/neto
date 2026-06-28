@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -162,6 +162,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [setPlan, closeUpgrade]);
 
   const planBadge = PLAN_BADGE[userPlan];
+
+  // Fuentes de datos conectadas, para el indicador único del topbar.
+  // TODO(sheets): sumar "Sheets" aquí cuando exista su flujo de conexión real.
+  const fuentesConectadas: string[] = session ? ["Gmail"] : [];
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 700);
@@ -386,38 +390,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {!isMobile && (
-            <Link href="/conexiones">
-              <div className="sources-pill">
-                <span className="src-dot" style={{ background: session ? "var(--accent)" : "var(--text3)" }} />
-                <span style={{ fontSize: 10 }}>Gmail</span>
-                <span style={{ color: "var(--border2)", margin: "0 2px" }}>·</span>
-                <span className="src-dot" style={{ background: "var(--text3)" }} />
-                <span style={{ fontSize: 10 }}>Sheets</span>
-              </div>
-            </Link>
-          )}
-
-          {session ? (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: "#DBEAFE", border: "1px solid #BFDBFE",
-              borderRadius: 20, padding: "4px 10px",
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", display: "block", flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: "var(--accent2)" }}>Gmail conectado</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Estado de conexiones — un solo indicador. Punto verde = conectado. */}
+          <Link href="/conexiones" aria-label="Estado de conexiones">
+            <div className="sources-pill">
+              {fuentesConectadas.length > 0 ? (
+                fuentesConectadas.map((fuente, i) => (
+                  <Fragment key={fuente}>
+                    {i > 0 && <span style={{ color: "var(--border2)", margin: "0 1px" }}>·</span>}
+                    <span className="src-dot" style={{ background: "#16A34A" }} />
+                    <span style={{ fontSize: 11 }}>{fuente}</span>
+                  </Fragment>
+                ))
+              ) : (
+                <>
+                  <span className="src-dot" style={{ background: "var(--text3)" }} />
+                  <span style={{ fontSize: 11 }}>Conecta Gmail</span>
+                </>
+              )}
             </div>
-          ) : (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: "#F1F5F9", border: "1px solid #E2E8F0",
-              borderRadius: 20, padding: "4px 10px",
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#CBD5E1", display: "block", flexShrink: 0 }} />
-              <span style={{ fontSize: 11, color: "#64748B" }}>Sin Gmail</span>
-            </div>
-          )}
+          </Link>
 
           <button
             type="button"
