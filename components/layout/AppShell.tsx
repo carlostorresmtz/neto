@@ -26,6 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Presupuesto",       href: "/presupuesto",      badge: null,  section: "menu",     icon: "target" },
   { label: "Suscripciones",     href: "/suscripciones",    badge: "7",   section: "menu",     icon: "clock" },
   { label: "Alertas",           href: "/alertas",          badge: null,  section: "menu",     icon: "bell" },
+  { label: "Declaraciones SAT", href: "/declaraciones",    badge: "Business", section: "menu", icon: "receipt" },
   { label: "BBVA Débito",       href: "/cuentas/bbva",     badge: null,  section: "accounts", icon: "card",
     bankBadge: { bg: "#004481", color: "#fff", text: "BB" } },
   { label: "Amex Gold",         href: "/cuentas/amex",     badge: null,  section: "accounts", icon: "card",
@@ -80,6 +81,7 @@ function NavIcon({ type, size = 14 }: { type: string; size?: number }) {
   if (type === "shield")     return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
   if (type === "income")     return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="10"/><polyline points="8 12 12 16 16 12"/><line x1="12" y1="8" x2="12" y2="16"/></svg>;
   if (type === "target")     return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;
+  if (type === "receipt")    return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><path d="M5 2v20l2-1.5L9 22l2-1.5L13 22l2-1.5L17 22l2-1.5V2l-2 1.5L15 2l-2 1.5L11 2 9 3.5 7 2z"/><line x1="8.5" y1="8" x2="15.5" y2="8"/><line x1="8.5" y1="12" x2="15.5" y2="12"/></svg>;
   if (type === "chevron")    return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><polyline points="6 9 12 15 18 9"/></svg>;
   if (type === "settings")   return <svg className={cls} width={size} height={size} viewBox="0 0 24 24" {...s}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
   return null;
@@ -152,11 +154,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleSelectPlan = useCallback((plan: PlanId) => {
     closeUpgrade();
-    // Business es venta asistida ("Contactar"): no cambia el plan directo.
-    if (plan === "business") {
-      setToast({ open: true, message: "Te contactaremos pronto 👋" });
-      return;
-    }
+    // Fase de validación sin cobro: los 3 planes (incl. Business) se auto-asignan
+    // al hacer clic. Se reemplazará por checkout real al integrar Stripe.
     setPlan(plan);
     setToast({ open: true, message: UPGRADE_TOAST[plan] });
   }, [setPlan, closeUpgrade]);
