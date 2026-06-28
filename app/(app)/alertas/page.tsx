@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { usePlan } from "@/components/PlanContext";
+import PaywallBlock from "@/components/PaywallBlock";
 
 interface GmailMessage { from: string; subject: string; date: string; snippet?: string; }
 
@@ -104,6 +106,7 @@ function timeAgo(ts: number) {
 
 export default function AlertasPage() {
   const { data: session } = useSession();
+  const { userPlan, openUpgrade } = usePlan();
   const [state, setState] = useState<LoadState>("idle");
   const [result, setResult] = useState<AlertasResult | null>(null);
   const [lastTs, setLastTs] = useState<number | null>(null);
@@ -233,38 +236,56 @@ export default function AlertasPage() {
             </div>
           )}
 
-          {urgentes.length > 0 && (
-            <>
-              <div className="section-title">Urgentes</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
-                {urgentes.map((a, i) => <AlertaCard key={i} alerta={a} />)}
-              </div>
-            </>
-          )}
-
-          {importantes.length > 0 && (
-            <>
-              <div className="section-title">Importantes</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
-                {importantes.map((a, i) => <AlertaCard key={i} alerta={a} />)}
-              </div>
-            </>
-          )}
-
-          {informativas.length > 0 && (
-            <>
-              <div className="section-title">Informativas</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
-                {informativas.map((a, i) => <AlertaCard key={i} alerta={a} />)}
-              </div>
-            </>
-          )}
-
-          {result.alertas.length === 0 && (
+          {result.alertas.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text3)" }}>
               <div style={{ fontSize: 32, marginBottom: 8 }}>✓</div>
               <div style={{ fontSize: 14 }}>Sin alertas activas</div>
             </div>
+          ) : userPlan === "free" ? (
+            /* ── Free: solo la primera alerta + bloque bloqueado ── */
+            <>
+              <div className="section-title">Esta semana</div>
+              <AlertaCard alerta={result.alertas[0]} />
+              {result.alertas.length > 1 && (
+                <PaywallBlock
+                  eyebrow="Solo en Pro"
+                  title={`${result.alertas.length - 1} alerta${result.alertas.length - 1 !== 1 ? "s" : ""} más esta semana`}
+                  ctaLabel="Desbloquear con Pro →"
+                  onUpgrade={openUpgrade}
+                  style={{ marginTop: 10 }}
+                />
+              )}
+            </>
+          ) : (
+            /* ── Pro/Business: todas las alertas, agrupadas ── */
+            <>
+              {urgentes.length > 0 && (
+                <>
+                  <div className="section-title">Urgentes</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
+                    {urgentes.map((a, i) => <AlertaCard key={i} alerta={a} />)}
+                  </div>
+                </>
+              )}
+
+              {importantes.length > 0 && (
+                <>
+                  <div className="section-title">Importantes</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
+                    {importantes.map((a, i) => <AlertaCard key={i} alerta={a} />)}
+                  </div>
+                </>
+              )}
+
+              {informativas.length > 0 && (
+                <>
+                  <div className="section-title">Informativas</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
+                    {informativas.map((a, i) => <AlertaCard key={i} alerta={a} />)}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </>
       )}

@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { usePlan } from "@/components/PlanContext";
+import PaywallBlock from "@/components/PaywallBlock";
 
 interface GmailMessage { from: string; subject: string; date: string; snippet?: string; }
 
@@ -45,6 +47,7 @@ function SkeletonCard() {
 
 export default function AnalisisPage() {
   const { data: session } = useSession();
+  const { userPlan, openUpgrade } = usePlan();
   const [state, setState] = useState<LoadState>("idle");
   const [data, setData] = useState<AnalisisData | null>(null);
   const [isDemo, setIsDemo] = useState(false);
@@ -179,27 +182,44 @@ export default function AnalisisPage() {
       )}
 
       {state === "done" && data && data.gastosPorMes.length > 0 && (
-        <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 100, marginBottom: 18 }}>
-          {data.gastosPorMes.map((m, i) => {
-            const isLast = i === data.gastosPorMes.length - 1;
-            const h = Math.max(12, Math.round((m.total / maxMes) * 80));
-            return (
-              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                <span style={{ fontSize: 9, color: isLast ? "var(--warn)" : "var(--text3)" }}>
-                  {fmt(m.total)}
-                </span>
-                <div style={{
-                  width: "100%", height: h,
-                  background: isLast ? "rgba(245,193,102,0.15)" : "var(--bg3)",
-                  border: isLast ? "1px solid rgba(245,193,102,0.4)" : "1px solid var(--border)",
-                  borderRadius: "3px 3px 0 0",
-                }} />
-                <span style={{ fontSize: 9, color: isLast ? "var(--warn)" : "var(--text3)" }}>
-                  {m.mes}{isLast ? "▲" : ""}
-                </span>
-              </div>
-            );
-          })}
+        <div style={{ position: "relative", marginBottom: 18, minHeight: userPlan === "free" ? 210 : undefined }}>
+          <div style={{
+            display: "flex", alignItems: "flex-end", gap: 8, height: 100,
+            ...(userPlan === "free" ? { filter: "blur(3px)", opacity: 0.5, pointerEvents: "none", userSelect: "none" } : null),
+          }}>
+            {data.gastosPorMes.map((m, i) => {
+              const isLast = i === data.gastosPorMes.length - 1;
+              const h = Math.max(12, Math.round((m.total / maxMes) * 80));
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                  <span style={{ fontSize: 9, color: isLast ? "var(--warn)" : "var(--text3)" }}>
+                    {fmt(m.total)}
+                  </span>
+                  <div style={{
+                    width: "100%", height: h,
+                    background: isLast ? "rgba(245,193,102,0.15)" : "var(--bg3)",
+                    border: isLast ? "1px solid rgba(245,193,102,0.4)" : "1px solid var(--border)",
+                    borderRadius: "3px 3px 0 0",
+                  }} />
+                  <span style={{ fontSize: 9, color: isLast ? "var(--warn)" : "var(--text3)" }}>
+                    {m.mes}{isLast ? "▲" : ""}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {userPlan === "free" && (
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
+              <PaywallBlock
+                eyebrow="Disponible en Pro"
+                title="Ver los últimos 12 meses"
+                ctaLabel="Desbloquear con Pro →"
+                onUpgrade={openUpgrade}
+                style={{ background: "var(--bg)", boxShadow: "0 8px 28px rgba(15,23,42,0.12)", maxWidth: 360 }}
+              />
+            </div>
+          )}
         </div>
       )}
 

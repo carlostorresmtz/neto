@@ -3,48 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Reveal from "@/components/landing/Reveal";
-
-const PRICING = [
-  {
-    name: "Gratis",
-    monthlyPrice: "$0",
-    annualPrice: "$0",
-    period: "para siempre",
-    nameColor: "#16A34A",
-    bg: "#F8FAFC",
-    border: "1px solid #E2E8F0",
-    features: ["Historial de 3 meses", "Preguntas ilimitadas", "1 banco conectado"],
-    cta: "Empezar gratis",
-    ctaAccent: false,
-    popular: false,
-  },
-  {
-    name: "Pro",
-    monthlyPrice: "$149",
-    annualPrice: "$119",
-    period: "MXN / mes",
-    nameColor: "#1E40AF",
-    bg: "#EFF6FF",
-    border: "1px solid #1E40AF",
-    features: ["Historial ilimitado", "Todos los bancos soportados", "Alertas proactivas", "Conexión a Google Sheets"],
-    cta: "Empezar Pro",
-    ctaAccent: true,
-    popular: true,
-  },
-  {
-    name: "Business",
-    monthlyPrice: "$499",
-    annualPrice: "$399",
-    period: "MXN / mes",
-    nameColor: "#64748B",
-    bg: "#F8FAFC",
-    border: "1px solid #E2E8F0",
-    features: ["Múltiples usuarios", "Exportación CSV", "Soporte prioritario", "API access"],
-    cta: "Contactar",
-    ctaAccent: false,
-    popular: false,
-  },
-];
+import { PLANS } from "@/lib/plans";
 
 export default function PricingSection() {
   const [annual, setAnnual] = useState(false);
@@ -99,7 +58,7 @@ export default function PricingSection() {
 
       {/* Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-        {PRICING.map((plan, i) => {
+        {PLANS.map((plan, i) => {
           const price = annual ? plan.annualPrice : plan.monthlyPrice;
           return (
             <Reveal key={plan.name} delay={i * 100} style={{ height: "100%" }}>

@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { streamText } from "ai";
+import { streamText, formatStreamPart } from "ai";
 import { FINANCIAL_CONTEXT } from "@/lib/data";
 import { auth } from "@/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
@@ -7,6 +7,44 @@ import { checkRateLimit } from "@/lib/rateLimit";
 // Plan free: 20 mensajes por hora.
 const CHAT_LIMIT = 20;
 const HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * Respuesta demo. Se devuelve cuando no hay ANTHROPIC_API_KEY (p. ej. en
+ * desarrollo local) o si la llamada al modelo falla, para que el chat corra sin
+ * llaves en vez de tronar con 500 — misma filosofía que lib/stripe.ts.
+ *
+ * Emite el protocolo data-stream de la AI SDK (mismas partes y headers que
+ * `toDataStreamResponse()`) para que `useChat` lo renderice como un mensaje del
+ * asistente, con efecto de escritura token por token.
+ */
+const DEMO_REPLY =
+  "Con tus datos de ejemplo, este mes llevas $23,450 gastados. Tus categorías principales son Restaurantes ($6,800), Supermercado ($5,200) y Servicios ($3,100). Tu mayor deuda es la tarjeta Nu ($18,640): si abonas $3,000 al mes la liquidas en unos 7 meses. ¿Quieres que desglose alguna categoría o tus suscripciones?";
+
+function demoChatResponse(): Response {
+  const tokens = DEMO_REPLY.match(/\S+\s*/g) ?? [DEMO_REPLY];
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (const token of tokens) {
+        controller.enqueue(encoder.encode(formatStreamPart("text", token)));
+        await new Promise(r => setTimeout(r, 18));
+      }
+      controller.enqueue(
+        encoder.encode(formatStreamPart("finish_message", {
+          finishReason: "stop",
+          usage: { promptTokens: 0, completionTokens: 0 },
+        }))
+      );
+      controller.close();
+    },
+  });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "X-Vercel-AI-Data-Stream": "v1",
+    },
+  });
+}
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -22,6 +60,12 @@ export async function POST(req: Request) {
       },
       { status: 429 }
     );
+  }
+
+  // Sin llave de Anthropic no podemos llamar al modelo: devolvemos un mensaje
+  // demo en el mismo formato de stream (esto desbloquea el desarrollo local).
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return demoChatResponse();
   }
 
   const body = await req.json();
@@ -59,12 +103,17 @@ No uses markdown excesivo.
 ${FINANCIAL_CONTEXT}`;
   }
 
-  const result = await streamText({
-    model: anthropic("claude-sonnet-4-6"),
-    system: systemPrompt,
-    messages,
-    maxTokens: 1024,
-  });
+  try {
+    const result = await streamText({
+      model: anthropic("claude-sonnet-4-6"),
+      system: systemPrompt,
+      messages,
+      maxTokens: 1024,
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  } catch (e) {
+    console.error("chat error:", e);
+    return demoChatResponse();
+  }
 }

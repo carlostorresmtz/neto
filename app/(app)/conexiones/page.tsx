@@ -3,9 +3,12 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import GoogleIcon from "@/components/ui/GoogleIcon";
+import { usePlan } from "@/components/PlanContext";
+import PaywallBlock from "@/components/PaywallBlock";
 
 export default function ConexionesPage() {
   const { data: session, status } = useSession();
+  const { userPlan, openUpgrade } = usePlan();
   const [emailCount, setEmailCount] = useState<number | null>(null);
   const [countLoading, setCountLoading] = useState(false);
 
@@ -126,24 +129,37 @@ export default function ConexionesPage() {
             <div className="conn-service-icon sheets" style={{ fontSize: 18 }}>⊞</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text)", marginBottom: 2 }}>Google Sheets</div>
-              <div style={{ fontSize: 12, color: "var(--text3)" }}>Próximamente</div>
+              <div style={{ fontSize: 12, color: "var(--text3)" }}>
+                {userPlan === "free" ? "Exclusivo de Pro" : "Próximamente"}
+              </div>
             </div>
           </div>
           <div style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-            <div style={{ fontSize: 11, color: "var(--text3)", background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 12px", lineHeight: 1.7 }}>
-              <strong style={{ color: "var(--text2)" }}>Qué leerá Neto:</strong><br />
-              La hoja de cálculo que tú elijas — puede ser tu registro manual de gastos, presupuesto mensual,
-              ingresos o cualquier tabla financiera.
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button className="btn-google" disabled style={{ opacity: 0.45, cursor: "not-allowed" }}>
-                <GoogleIcon />
-                Conectar Sheets con Google
-              </button>
-            </div>
-            <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>
-              Scope: spreadsheets.readonly — solo lectura, nunca modificamos tu hoja
-            </div>
+            {userPlan === "free" ? (
+              <PaywallBlock
+                title="Google Sheets es exclusivo de Pro"
+                description="Conecta tu presupuesto y cruza datos con tus gastos reales de Gmail."
+                ctaLabel="Desbloquear con Pro →"
+                onUpgrade={openUpgrade}
+              />
+            ) : (
+              <>
+                <div style={{ fontSize: 11, color: "var(--text3)", background: "var(--bg3)", border: "1px solid var(--border)", borderRadius: "var(--radius-sm)", padding: "10px 12px", lineHeight: 1.7 }}>
+                  <strong style={{ color: "var(--text2)" }}>Qué leerá Neto:</strong><br />
+                  La hoja de cálculo que tú elijas — puede ser tu registro manual de gastos, presupuesto mensual,
+                  ingresos o cualquier tabla financiera.
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button className="btn-google" disabled style={{ opacity: 0.45, cursor: "not-allowed" }}>
+                    <GoogleIcon />
+                    Conectar Sheets con Google
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text3)", marginTop: 2 }}>
+                  Scope: spreadsheets.readonly — solo lectura, nunca modificamos tu hoja
+                </div>
+              </>
+            )}
           </div>
         </div>
 

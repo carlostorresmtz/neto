@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { usePlan } from "@/components/PlanContext";
+import UpgradeModal from "@/components/UpgradeModal";
+import Toast from "@/components/Toast";
+import type { PlanId } from "@/lib/plans";
 
 interface NavItem {
   label: string;
@@ -40,6 +44,19 @@ const AGENT_SUB_ITEMS = [
   { label: "FraudeAgent",      href: "/agentes#fraude",     icon: "shield" },
   { label: "DepositosAgent",   href: "/agentes#depositos",  icon: "income" },
 ];
+
+// Estilo del badge de plan en el topbar: Free gris / Pro azul / Business ámbar.
+const PLAN_BADGE: Record<PlanId, { label: string; bg: string; border: string; color: string; dot: string }> = {
+  free:     { label: "Free",     bg: "#F1F5F9", border: "#E2E8F0", color: "#64748B", dot: "#94A3B8" },
+  pro:      { label: "Pro",      bg: "#DBEAFE", border: "#BFDBFE", color: "#1E40AF", dot: "#1E40AF" },
+  business: { label: "Business", bg: "#FEF3C7", border: "#FDE68A", color: "#B45309", dot: "#D97706" },
+};
+
+const UPGRADE_TOAST: Record<PlanId, string> = {
+  free:     "Estás en el plan Gratis",
+  pro:      "¡Listo! Ya tienes Neto Pro 🎉",
+  business: "¡Listo! Ya tienes Neto Business",
+};
 
 interface AlertInfo { count: number; level: "urgent" | "important" | "info" | null }
 interface BudgetAlertInfo { level: "ok" | "warn" | "over"; pct: number }
@@ -129,6 +146,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [budgetAlert, setBudgetAlert] = useState<BudgetAlertInfo | null>(null);
   const [agentsExpanded, setAgentsExpanded] = useState(false);
   const { data: session } = useSession();
+
+  const { userPlan, setPlan, upgradeOpen, openUpgrade, closeUpgrade } = usePlan();
+  const [toast, setToast] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
+
+  const handleSelectPlan = useCallback((plan: PlanId) => {
+    closeUpgrade();
+    // Business es venta asistida ("Contactar"): no cambia el plan directo.
+    if (plan === "business") {
+      setToast({ open: true, message: "Te contactaremos pronto 👋" });
+      return;
+    }
+    setPlan(plan);
+    setToast({ open: true, message: UPGRADE_TOAST[plan] });
+  }, [setPlan, closeUpgrade]);
+
+  const planBadge = PLAN_BADGE[userPlan];
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 700);
@@ -386,6 +419,21 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           )}
 
+          <button
+            type="button"
+            onClick={openUpgrade}
+            aria-label={`Plan ${planBadge.label} — cambiar de plan`}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: planBadge.bg, border: `1px solid ${planBadge.border}`,
+              borderRadius: 20, padding: "4px 10px", cursor: "pointer",
+              fontFamily: "inherit", flexShrink: 0,
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: planBadge.dot, display: "block", flexShrink: 0 }} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: planBadge.color }}>{planBadge.label}</span>
+          </button>
+
           <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Cambiar tema">
             {theme === "dark" ? (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -456,6 +504,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={closeUpgrade}
+        currentPlan={userPlan}
+        onSelectPlan={handleSelectPlan}
+      />
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        onClose={() => setToast(t => ({ ...t, open: false }))}
+      />
     </div>
   );
 }

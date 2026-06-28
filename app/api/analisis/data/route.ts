@@ -38,9 +38,43 @@ Reglas:
 - "tendencia": "subiendo", "bajando" o "estable"
 - Todos los montos en MXN (pesos mexicanos)`;
 
+/**
+ * Datos de ejemplo. Se devuelven cuando no hay ANTHROPIC_API_KEY (p. ej. en
+ * desarrollo local) o si la llamada al modelo falla, para que la app corra sin
+ * llaves en vez de responder 500 — misma filosofía que lib/stripe.ts.
+ */
+const DEMO_DATA = {
+  gastosPorCategoria: [
+    { categoria: "Restaurantes",    monto: 6800, porcentaje: 29, color: "#f97316" },
+    { categoria: "Supermercado",    monto: 5200, porcentaje: 22, color: "#10b981" },
+    { categoria: "Servicios",       monto: 3100, porcentaje: 13, color: "#ef4444" },
+    { categoria: "Gasolina",        monto: 3400, porcentaje: 14, color: "#3b82f6" },
+    { categoria: "Entretenimiento", monto: 2600, porcentaje: 11, color: "#8b5cf6" },
+    { categoria: "Otros",           monto: 2500, porcentaje: 11, color: "#f59e0b" },
+  ],
+  gastosPorMes: [
+    { mes: "Feb", total: 21400 },
+    { mes: "Mar", total: 19800 },
+    { mes: "Abr", total: 22600 },
+    { mes: "May", total: 20900 },
+    { mes: "Jun", total: 23600 },
+  ],
+  totalMesActual: 23600,
+  promedioMensual: 21660,
+  variacionVsMesAnterior: 12.9,
+  tendencia: "subiendo",
+  topComercio: { nombre: "Oxxo", monto: 2840, visitas: 23 },
+};
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const { gmailContext } = body as { gmailContext?: GmailMessage[] };
+
+  // Sin llave de Anthropic no podemos llamar al modelo: devolvemos demo en vez
+  // de tronar con 500 (esto desbloquea el desarrollo local).
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return Response.json(DEMO_DATA);
+  }
 
   let dataContext: string;
 
@@ -54,25 +88,19 @@ export async function POST(req: Request) {
     dataContext = "No hay correos disponibles. Genera datos financieros de ejemplo para un usuario mexicano típico con gastos en restaurantes, supermercado, gasolina y entretenimiento. Usa montos realistas en pesos mexicanos.";
   }
 
-  const { text } = await generateText({
-    model: anthropic("claude-sonnet-4-6"),
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: dataContext }],
-    maxTokens: 2000,
-  });
-
-  const parsed = extractJSON(text);
-  if (!parsed) {
-    return Response.json({
-      error: true,
-      gastosPorCategoria: [],
-      gastosPorMes: [],
-      totalMesActual: 0,
-      promedioMensual: 0,
-      variacionVsMesAnterior: 0,
-      tendencia: "estable",
-      topComercio: null,
+  try {
+    const { text } = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: dataContext }],
+      maxTokens: 2000,
     });
+
+    const parsed = extractJSON(text);
+    // Si el modelo no devolvió JSON parseable, caemos a datos de ejemplo.
+    return Response.json(parsed ?? DEMO_DATA);
+  } catch (e) {
+    console.error("analisis/data error:", e);
+    return Response.json(DEMO_DATA);
   }
-  return Response.json(parsed);
 }

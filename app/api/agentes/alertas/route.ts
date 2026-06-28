@@ -28,6 +28,21 @@ Responde con este JSON exacto:
 
 Máximo 6 alertas ordenadas por urgencia. tipo debe ser exactamente "URGENTE", "IMPORTANTE" o "INFORMATIVO".`;
 
+/**
+ * Alertas de ejemplo. Se devuelven cuando no hay ANTHROPIC_API_KEY (p. ej. en
+ * desarrollo local) o si la llamada al modelo falla, para que la app corra sin
+ * llaves en vez de responder 500 — misma filosofía que lib/stripe.ts.
+ */
+const DEMO_ALERTAS = {
+  resumen: "Detecté 4 situaciones que requieren tu atención esta semana.",
+  alertas: [
+    { tipo: "URGENTE", titulo: "Pago de tarjeta Nu próximo", mensaje: "Tu pago para no generar intereses vence en 3 días. Debes al menos $1,850.", accion: "Programa el pago hoy", monto: 1850, fecha: "Vence 30 jun" },
+    { tipo: "IMPORTANTE", titulo: "Suscripciones por renovar", mensaje: "HBO Max y Spotify se renuevan esta semana por $448 en total.", accion: "Revisa si las sigues usando", monto: 448, fecha: "1-3 jul" },
+    { tipo: "IMPORTANTE", titulo: "Gasto inusual en restaurantes", mensaje: "Llevas $6,800 en restaurantes este mes, 38% más que tu promedio.", accion: null, monto: 6800, fecha: null },
+    { tipo: "INFORMATIVO", titulo: "Vas bien en supermercado", mensaje: "Gastaste 12% menos que el mes pasado en súper. ¡Sigue así!", accion: null, monto: 5200, fecha: null },
+  ],
+};
+
 export async function POST(req: Request) {
   const session = await auth();
   const limited = agentRateLimit(session?.user?.email ?? "anon", "alertas");
@@ -35,6 +50,12 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const { gmailContext } = body as { gmailContext?: GmailMessage[] };
+
+  // Sin llave de Anthropic no podemos llamar al modelo: devolvemos demo en vez
+  // de tronar con 500 (esto desbloquea el desarrollo local).
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return Response.json(DEMO_ALERTAS);
+  }
 
   let dataContext: string;
 
@@ -51,16 +72,19 @@ export async function POST(req: Request) {
     dataContext = `${FINANCIAL_CONTEXT}\n\nTRANSACCIONES MAYO 2025 (${gastos.length} gastos):\n${gastos.map(t => `- ${t.date}: ${t.name} -$${Math.abs(t.amount)} (${t.cat})`).join("\n")}\n\nSUSCRIPCIONES:\n${subs}`;
   }
 
-  const { text } = await generateText({
-    model: anthropic("claude-sonnet-4-6"),
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: dataContext }],
-    maxTokens: 2000,
-  });
+  try {
+    const { text } = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: dataContext }],
+      maxTokens: 2000,
+    });
 
-  const parsed = extractJSON(text);
-  if (!parsed) {
-    return Response.json({ error: true, mensaje: "No se pudo analizar la respuesta", alertas: [], resumen: "Error temporal. Intenta de nuevo." });
+    const parsed = extractJSON(text);
+    // Si el modelo no devolvió JSON parseable, caemos a alertas de ejemplo.
+    return Response.json(parsed ?? DEMO_ALERTAS);
+  } catch (e) {
+    console.error("agentes/alertas error:", e);
+    return Response.json(DEMO_ALERTAS);
   }
-  return Response.json(parsed);
 }

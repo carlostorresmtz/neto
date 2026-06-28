@@ -7,6 +7,7 @@ import Link from "next/link";
 import type { GmailMessage } from "@/app/api/gmail/messages/route";
 import BudgetWidget from "@/components/BudgetWidget";
 import IllustrationChat from "@/components/IllustrationChat";
+import { usePlan } from "@/components/PlanContext";
 
 // ── KPI stats data ──
 const STATS = [
@@ -123,6 +124,15 @@ export default function ChatPage() {
   const [rateLimitUntil, setRateLimitUntil] = useState<number | null>(null);
   const [, setTick] = useState(0);
 
+  // ── Paywall de chat (plan Free) ──
+  const { userPlan, chatQuestionsUsed, chatQuestionsLimit, incrementQuestions, openUpgrade } = usePlan();
+  const [paywallHit, setPaywallHit] = useState(false);
+  const [reminderSet, setReminderSet] = useState(false);
+  const freeLimitReached = userPlan === "free" && chatQuestionsUsed >= chatQuestionsLimit;
+  // El aviso de límite solo tiene sentido mientras siga en Free; al pasar a Pro
+  // desaparece sin recargar.
+  const showPaywallBubble = paywallHit && userPlan === "free";
+
   // Keep a ref so the submit handler always has the latest gmailMessages value
   const gmailRef = useRef<typeof gmailMessages>(null);
   useEffect(() => { gmailRef.current = gmailMessages; }, [gmailMessages]);
@@ -163,11 +173,19 @@ export default function ChatPage() {
 
   // Wrap submit to inject gmailContext from the latest ref value
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    // Paywall Free: si ya agotó sus preguntas, no enviamos y mostramos el aviso.
+    if (freeLimitReached) {
+      e.preventDefault();
+      setPaywallHit(true);
+      setInput("");
+      return;
+    }
     _handleSubmit(e, {
       body: gmailRef.current && gmailRef.current.length > 0
         ? { gmailContext: gmailRef.current }
         : undefined,
     });
+    incrementQuestions();
   }
 
   // Fetch Gmail messages when session with accessToken is available
@@ -283,7 +301,7 @@ export default function ChatPage() {
 
       {/* ── Messages / Empty state ── */}
       <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-        {messages.length === 0 ? (
+        {messages.length === 0 && !showPaywallBubble ? (
           /* ── Empty state centered ── */
           <div className="dot-grid" style={{
             flex: 1, overflowY: "auto",
@@ -367,6 +385,53 @@ export default function ChatPage() {
                 </div>
               </div>
             )}
+
+            {/* ── Burbuja de paywall (Free agotó sus preguntas) ── */}
+            {showPaywallBubble && (
+              <div className="msg">
+                <div className="msg-avatar ai">N</div>
+                <div className="msg-content">
+                  <div className="bubble ai">
+                    <p style={{ whiteSpace: "pre-wrap", marginBottom: 14 }}>
+                      Usaste tus {chatQuestionsLimit} preguntas gratuitas de este mes. Tu contador sigue leyendo tu correo — solo necesitas Pro para seguir preguntando.
+                    </p>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <button
+                        type="button"
+                        onClick={openUpgrade}
+                        style={{
+                          padding: "8px 16px", fontSize: 13, fontWeight: 500,
+                          background: "var(--accent)", color: "#FFFFFF",
+                          border: "none", borderRadius: 9, cursor: "pointer", fontFamily: "inherit",
+                        }}
+                      >
+                        Activar Pro gratis
+                      </button>
+                      {reminderSet ? (
+                        <span style={{ fontSize: 12, color: "var(--accent2)", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Te recordaremos el 1
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setReminderSet(true)}
+                          style={{
+                            padding: "8px 16px", fontSize: 13, fontWeight: 500,
+                            background: "transparent", color: "var(--text2)",
+                            border: "1px solid var(--border2)", borderRadius: 9, cursor: "pointer", fontFamily: "inherit",
+                          }}
+                        >
+                          Recordarme el 1 del próximo mes
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
         )}
@@ -389,6 +454,20 @@ export default function ChatPage() {
             </button>
           </div>
         </form>
+
+        {userPlan === "free" && (
+          <div style={{ marginTop: 8, fontSize: 11, color: "var(--text3)", textAlign: "center" }}>
+            {Math.min(chatQuestionsUsed, chatQuestionsLimit)} de {chatQuestionsLimit} preguntas usadas este mes{" "}
+            <span style={{ color: "var(--border2)" }}>·</span>{" "}
+            <button
+              type="button"
+              onClick={openUpgrade}
+              style={{ background: "none", border: "none", padding: 0, font: "inherit", fontSize: 11, color: "var(--accent2)", cursor: "pointer", textDecoration: "none" }}
+            >
+              Upgrade a Pro para chat ilimitado
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
