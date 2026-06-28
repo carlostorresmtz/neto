@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Análisis",          href: "/analisis",         badge: null,  section: "menu",     icon: "bar" },
   { label: "Presupuesto",       href: "/presupuesto",      badge: null,  section: "menu",     icon: "target" },
   { label: "Suscripciones",     href: "/suscripciones",    badge: "7",   section: "menu",     icon: "clock" },
+  { label: "Tarjetas",          href: "/tarjetas",         badge: null,  section: "menu",     icon: "creditcard" },
   { label: "Alertas",           href: "/alertas",          badge: null,  section: "menu",     icon: "bell" },
   { label: "Declaraciones SAT", href: "/declaraciones",    badge: "Business", section: "menu", icon: "receipt" },
   { label: "BBVA Débito",       href: "/cuentas/bbva",     badge: null,  section: "accounts", icon: "card",
